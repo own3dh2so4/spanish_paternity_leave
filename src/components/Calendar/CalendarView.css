@@ -1,0 +1,885 @@
+/* ============================================
+   Calendar View Styles
+   ============================================ */
+
+.calendar-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-left h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #818CF8, #F472B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.header-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.header-subtitle strong {
+    color: var(--text-primary);
+}
+
+.btn-edit {
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+}
+
+.btn-edit:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+/* Summary cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    border-top: 3px solid;
+}
+
+.summary-card-header {
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.summary-card-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+}
+
+.summary-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+
+.summary-period {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.period-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.period-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.period-type {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.period-dates {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.period-dates-editable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 1px 3px;
+    margin: -1px -3px;
+    transition: background 0.15s ease;
+    display: inline-block;
+}
+
+.period-dates-editable:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.period-date-edit-icon {
+    display: inline-block;
+    font-size: 0.65rem;
+    opacity: 0;
+    margin-left: 4px;
+    transition: opacity 0.15s ease;
+    color: var(--text-muted);
+    vertical-align: middle;
+}
+
+.period-dates-editable:hover .period-date-edit-icon {
+    opacity: 0.6;
+}
+
+.period-date-picker-row {
+    margin-top: 2px;
+    position: relative;
+}
+
+.period-edit-input--date {
+    font-size: 0.72rem !important;
+    padding: 2px 8px !important;
+    width: 130px !important;
+    cursor: pointer !important;
+}
+
+/* Drag handle */
+.period-drag-handle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    opacity: 0;
+    cursor: grab;
+    padding-right: 4px;
+    flex-shrink: 0;
+    align-self: center;
+    transition: opacity 0.15s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.period-drag-handle--hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.summary-period:hover .period-drag-handle:not(.period-drag-handle--hidden) {
+    opacity: 0.45;
+}
+
+.period-drag-handle:hover:not(.period-drag-handle--hidden) {
+    opacity: 0.85 !important;
+}
+
+.period-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Editable period rows */
+.period-row-editable {
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.period-row-editable:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Read-only period rows (mandatory leave) */
+.period-row-readonly {
+    cursor: default;
+    border-radius: 8px;
+    padding: 4px 6px;
+    margin: -4px -6px;
+}
+
+/* Row currently being dragged */
+.period-dragging {
+    opacity: 0.35;
+}
+
+/* Row acting as drop target */
+.period-dragover {
+    box-shadow: inset 0 0 0 2px rgba(129, 140, 248, 0.55);
+    background: rgba(129, 140, 248, 0.07) !important;
+}
+
+.period-mandatory-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(99, 102, 241, 0.12);
+    color: #818CF8;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.period-edit-icon {
+    display: inline-block;
+    font-size: 0.7rem;
+    opacity: 0;
+    margin-left: 4px;
+    transition: opacity 0.15s ease;
+    color: var(--text-muted);
+    vertical-align: middle;
+}
+
+.period-row-editable:hover .period-edit-icon {
+    opacity: 0.7;
+}
+
+.period-custom-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: rgba(245, 158, 11, 0.18);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* Inline edit row */
+.period-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.period-edit-input {
+    width: 68px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.period-edit-input::-webkit-inner-spin-button,
+.period-edit-input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+.period-edit-input:focus {
+    border-color: rgba(129, 140, 248, 0.6);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+}
+
+.period-edit-unit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.period-edit-unit-select {
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.period-edit-unit-select:focus {
+    border-color: rgba(129, 140, 248, 0.6);
+}
+
+/* Reset custom durations button inside card header */
+.btn-reset-custom {
+    margin-left: auto;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #F59E0B;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-reset-custom:hover {
+    background: rgba(245, 158, 11, 0.28);
+    transform: scale(1.04);
+}
+
+.return-date {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.return-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.return-value {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.work-timeline-list {
+    list-style: none;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.work-timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.work-timeline-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #10B981;
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+}
+
+.work-timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.work-timeline-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.work-timeline-label {
+    font-weight: 500;
+}
+
+.work-timeline-date {
+    font-weight: 600;
+    color: #10B981;
+    white-space: nowrap;
+}
+
+/* Legend */
+.calendar-legend {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.legend-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.birthday-legend {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+}
+
+/* Months container */
+.months-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Month grid */
+.month-grid {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.month-grid:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.month-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.day-names {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.day-name {
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 0;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+/* Day cell */
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    position: relative;
+    cursor: default;
+    transition: transform 0.15s ease;
+}
+
+.day-cell.empty {
+    background: transparent;
+}
+
+.day-cell.weekend .day-number {
+    opacity: 0.4;
+}
+
+.day-cell.has-leave {
+    cursor: pointer;
+}
+
+.day-cell.has-leave:hover {
+    transform: scale(1.15);
+    z-index: 10;
+}
+
+.day-number {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.day-cell.today {
+    outline: 2px solid #F59E0B;
+    outline-offset: -1px;
+}
+
+.day-cell.birthday {
+    outline: 2px solid #10B981;
+    outline-offset: -1px;
+}
+
+.birth-marker {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.6rem;
+}
+
+/* Rich Tooltip */
+.day-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(17, 19, 34, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 0;
+    min-width: 220px;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    animation: tooltipFadeIn 0.15s ease;
+    overflow: hidden;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.tooltip-header {
+    padding: 0.6rem 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.tooltip-birth {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.75rem;
+    color: #10B981;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tooltip-entries {
+    padding: 0.5rem 0;
+}
+
+.tooltip-entry {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.35rem 0.85rem;
+}
+
+.tooltip-color-bar {
+    width: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-right: 0.65rem;
+}
+
+.tooltip-entry-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.tooltip-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.tooltip-type {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ── Extra period rows ─────────────────────────────────────────────────────── */
+
+.extra-period-row {
+    cursor: default;
+    position: relative;
+}
+
+.extra-period-row:hover {
+    background: var(--surface-hover);
+}
+
+.extra-period-name {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.extra-period-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(251, 146, 60, 0.18);
+    color: #FB923C;
+    letter-spacing: 0.02em;
+}
+
+.btn-delete-extra {
+    flex-shrink: 0;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    margin-left: auto;
+}
+
+.btn-delete-extra:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+
+/* ── Add-period button ─────────────────────────────────────────────────────── */
+
+.btn-add-extra {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    margin-top: 0.25rem;
+    border: 1.5px dashed var(--border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.btn-add-extra:hover {
+    border-color: #FB923C;
+    color: #FB923C;
+    background: rgba(251, 146, 60, 0.06);
+}
+
+/* ── Inline add-extra form ─────────────────────────────────────────────────── */
+
+.add-extra-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    margin-top: 0.25rem;
+    border: 1.5px solid rgba(251, 146, 60, 0.4);
+    border-radius: 8px;
+    background: rgba(251, 146, 60, 0.06);
+}
+
+.add-extra-preset-select {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #E8EAED;
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    appearance: auto;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.add-extra-preset-select:focus {
+    border-color: #FB923C;
+    box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
+}
+
+.add-extra-name-input {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #E8EAED;
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.add-extra-name-input:focus {
+    outline: none;
+    border-color: #FB923C;
+    box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
+}
+
+.add-extra-duration-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.add-extra-weeks-input {
+    width: 4rem !important;
+}
+
+.add-extra-unit-select {
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.add-extra-unit-select:focus {
+    border-color: #FB923C;
+}
+
+.add-extra-confirm {
+    padding: 0.3rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: rgba(251, 146, 60, 0.85);
+    color: white;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.15s;
+}
+
+.add-extra-confirm:hover {
+    background: #EA7C1E;
+}
+
+.add-extra-cancel {
+    padding: 0.3rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--surface-secondary);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.add-extra-cancel:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #EF4444;
+}
+
+/* Load more */
+.load-more {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .calendar-container {
+        padding: 1rem;
+    }
+
+    .calendar-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .months-container {
+        grid-template-columns: 1fr;
+    }
+}

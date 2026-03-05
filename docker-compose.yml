@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind-mount the workspace for hot-reload
+      - .:/app
+      # Anonymous volume keeps the container's node_modules isolated from the host
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
