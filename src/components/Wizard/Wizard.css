@@ -11,17 +11,15 @@
 }
 
 .wizard-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-card);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: 24px;
   padding: 3rem;
   max-width: 640px;
   width: 100%;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 80px rgba(79, 70, 229, 0.08);
+  box-shadow: var(--shadow-card);
   animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -40,6 +38,7 @@
 .wizard-header {
   text-align: center;
   margin-bottom: 2rem;
+  position: relative;
 }
 
 .wizard-header h1 {
@@ -55,6 +54,35 @@
 .wizard-subtitle {
   color: var(--text-muted);
   font-size: 0.95rem;
+}
+
+/* Top-right controls: language + theme toggle */
+.wizard-header-controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.btn-icon {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btn-icon:hover {
+  border-color: var(--border-input);
+  color: var(--text-primary);
 }
 
 /* Progress bar */
@@ -85,8 +113,8 @@
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-input);
+  border: 2px solid var(--border-input);
   color: var(--text-muted);
   transition: all 0.3s ease;
   z-index: 1;
@@ -124,7 +152,7 @@
   left: calc(50% + 22px);
   width: calc(100% - 44px);
   height: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-input);
 }
 
 .progress-step.completed .step-connector {
@@ -203,8 +231,8 @@
   font-size: 1rem;
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 12px;
   outline: none;
   transition: all 0.2s ease;
@@ -234,8 +262,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
+  border: 2px solid var(--border-subtle);
   border-radius: 16px;
   color: var(--text-muted);
   cursor: pointer;
@@ -245,8 +273,8 @@
 }
 
 .toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--border-subtle);
+  border-color: var(--border-input);
   transform: translateY(-2px);
 }
 
@@ -299,8 +327,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-input);
+  border: 2px solid var(--border-subtle);
   border-radius: 16px;
   color: var(--text-muted);
   cursor: pointer;
@@ -312,8 +340,8 @@
 }
 
 .mode-card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--border-subtle);
+  border-color: var(--border-input);
   transform: translateY(-2px);
 }
 
@@ -390,7 +418,7 @@
   justify-content: space-between;
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* Buttons */
@@ -422,17 +450,17 @@
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-input);
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-subtle);
   color: var(--text-primary);
 }
 
-/* ── react-datepicker dark theme ─────────────────────────────────────────────*/
+/* ── react-datepicker (reuse same dp-dark class, themed via CSS vars) ────────*/
 
 .datepicker-group {
   position: relative;
@@ -447,267 +475,182 @@
   cursor: pointer;
 }
 
-/* Popup container */
-.dp-dark.react-datepicker {
-  background: var(--bg-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  color: var(--text-primary);
-}
-
-/* Triangle arrow */
-.dp-dark.react-datepicker .react-datepicker__triangle {
-  display: none;
-}
-
-/* Header */
-.dp-dark.react-datepicker .react-datepicker__header {
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  padding-top: 10px;
-}
-
-.dp-dark.react-datepicker .react-datepicker__current-month {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-/* Navigation arrows */
-.dp-dark.react-datepicker .react-datepicker__navigation-icon::before {
-  border-color: var(--text-muted);
-}
-
-.dp-dark.react-datepicker .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
-  border-color: var(--text-primary);
-}
-
-/* Day names row */
-.dp-dark.react-datepicker .react-datepicker__day-name {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* Day cells */
-.dp-dark.react-datepicker .react-datepicker__day {
-  color: var(--text-secondary);
-  border-radius: 6px;
-  transition: background 0.15s;
-}
-
-.dp-dark.react-datepicker .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
-  background: rgba(79, 70, 229, 0.25);
-  color: var(--text-primary);
-}
-
-.dp-dark.react-datepicker .react-datepicker__day--selected,
-.dp-dark.react-datepicker .react-datepicker__day--keyboard-selected {
-  background: #4f46e5;
-  color: #fff;
-  font-weight: 600;
-}
-
-.dp-dark.react-datepicker .react-datepicker__day--selected:hover,
-.dp-dark.react-datepicker .react-datepicker__day--keyboard-selected:hover {
-  background: #6366f1;
-}
-
-.dp-dark.react-datepicker .react-datepicker__day--disabled,
-.dp-dark.react-datepicker .react-datepicker__day--outside-month {
-  color: var(--text-muted);
-  opacity: 0.35;
-}
-
-/* Month/year dropdowns */
-.dp-dark.react-datepicker .react-datepicker__month-dropdown-container--select select,
-.dp-dark.react-datepicker .react-datepicker__year-dropdown-container--select select {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  padding: 2px 4px;
-}
-
 /* ── Cuidado step ─────────────────────────────────────────────────────────── */
 
 .cuidado-info-box {
-    background: rgba(16, 185, 129, 0.07);
-    border: 1px solid rgba(16, 185, 129, 0.18);
-    border-radius: 12px;
-    padding: 0.875rem 1.125rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 12px;
+  padding: 0.875rem 1.125rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .cuidado-info-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.82rem;
-    color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .cuidado-paid-badge {
-    display: inline-block;
-    background: rgba(16, 185, 129, 0.15);
-    color: #10B981;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    white-space: nowrap;
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .cuidado-unpaid-badge {
-    display: inline-block;
-    background: rgba(107, 114, 128, 0.12);
-    color: var(--text-muted);
-    border: 1px solid rgba(107, 114, 128, 0.2);
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    white-space: nowrap;
+  display: inline-block;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border-input);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .cuidado-parent-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .cuidado-parent-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    text-align: left;
-    transition: border-color 0.2s ease, background 0.2s ease;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .cuidado-parent-card.active {
-    background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
 }
 
 .cuidado-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .cuidado-parent-name {
-    font-size: 0.9rem;
-    font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .cuidado-toggle {
-    border: none;
-    border-radius: 20px;
-    padding: 4px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  border: none;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .cuidado-toggle.off {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-muted);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .cuidado-toggle.on {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10B981;
-    border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .cuidado-toggle:hover {
-    opacity: 0.85;
+  opacity: 0.85;
 }
 
 .cuidado-weeks-section {
-    margin-top: 0.875rem;
-    animation: fadeSlideIn 0.25s ease;
+  margin-top: 0.875rem;
+  animation: fadeSlideIn 0.25s ease;
 }
 
 .cuidado-weeks-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
 }
 
 .cuidado-week-picker {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
 }
 
 .cuidado-week-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    border: 1px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cuidado-week-btn.paid {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
-    border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .cuidado-week-btn.unpaid {
-    background: rgba(107, 114, 128, 0.08);
-    color: var(--text-muted);
-    border-color: rgba(107, 114, 128, 0.15);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
 }
 
 .cuidado-week-btn.selected {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 2px currentColor;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px currentColor;
 }
 
 .cuidado-week-btn.paid.selected {
-    background: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.25);
 }
 
 .cuidado-week-btn.unpaid.selected {
-    background: rgba(107, 114, 128, 0.18);
-    color: var(--text-secondary);
+  background: var(--border-input);
+  color: var(--text-secondary);
 }
 
 .cuidado-week-btn:hover:not(.selected) {
-    transform: scale(1.05);
-    opacity: 0.8;
+  transform: scale(1.05);
+  opacity: 0.8;
 }
 
 .cuidado-breakdown {
-    margin-top: 0.5rem;
-    font-size: 0.78rem;
-    color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 /* Responsive */

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
+import { enGB } from 'date-fns/locale';
 import { es } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 import MonthGrid from './MonthGrid';
@@ -34,8 +35,12 @@ import type {
     ScheduleResult,
     WizardData,
 } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { useTheme } from '../../theme/ThemeContext';
+import { compressWizardData } from '../../utils/shareUtils';
 import './CalendarView.css';
 
+registerLocale('en-GB', enGB);
 registerLocale('es', es);
 
 const DEFAULT_DURATIONS: Record<LeaveType, number> = {
@@ -52,11 +57,11 @@ const EXTRA_PRESETS: Array<{
     defaultValue: number;
     defaultUnit: 'days' | 'weeks';
 }> = [
-    { key: 'vacation', label: '🏖️ Vacation',        defaultValue: 2, defaultUnit: 'weeks' },
-    { key: 'unpaid',   label: '📋 Unpaid leave',     defaultValue: 5, defaultUnit: 'days'  },
-    { key: 'gradual',  label: '🔄 Gradual return',   defaultValue: 4, defaultUnit: 'weeks' },
-    { key: 'custom',   label: '✏️ Custom',            defaultValue: 1, defaultUnit: 'weeks' },
-];
+        { key: 'vacation', label: '🏖️ Vacation', defaultValue: 2, defaultUnit: 'weeks' },
+        { key: 'unpaid', label: '📋 Unpaid leave', defaultValue: 5, defaultUnit: 'days' },
+        { key: 'gradual', label: '🔄 Gradual return', defaultValue: 4, defaultUnit: 'weeks' },
+        { key: 'custom', label: '✏️ Custom', defaultValue: 1, defaultUnit: 'weeks' },
+    ];
 
 function generateExtraId(): string {
     return `ep-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -385,9 +390,37 @@ interface Props {
     onEdit: () => void;
     onReset: () => void;
     onUpdateData: (data: WizardData) => void;
+    initialHidden?: Set<number>;
 }
 
-export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Props) {
+export default function CalendarView({ data, onEdit, onReset, onUpdateData, initialHidden }: Props) {
+    const { t, lang, setLang } = useLanguage();
+    const { theme, toggleTheme } = useTheme();
+
+    // Track which parents are hidden (collapsed)
+    const [hiddenParents, setHiddenParents] = useState<Set<number>>(initialHidden || new Set());
+
+    const toggleParentVisibility = (idx: number) => {
+        setHiddenParents((prev) => {
+            const next = new Set(prev);
+            if (next.has(idx)) next.delete(idx); else next.add(idx);
+            return next;
+        });
+    };
+
+    const handleShare = async () => {
+        try {
+            const compressed = compressWizardData(data, hiddenParents, unifiedPeriodsMap);
+            const url = new URL(window.location.href);
+            url.searchParams.set('share', compressed);
+            await navigator.clipboard.writeText(url.toString());
+            alert(t.shareSuccess);
+        } catch (e) {
+            console.error('Failed to share', e);
+            alert(t.shareError);
+        }
+    };
+
     // Stable references — ?? [] / {} would create a new reference on every render when undefined
     const lactanciaFirst = useMemo(() => data.lactanciaFirst ?? [true, true], [data.lactanciaFirst]);
     const customDurations = useMemo<CustomDurations>(
@@ -519,17 +552,20 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
         data.parentCount,
         data.firstParent,
         data.dueDate,
+        customDurations,
     ]);
 
     const dateMap = useMemo(() => {
         const map: Record<string, DateMapEntry[]> = {};
         for (let i = 0; i < data.names.length; i++) {
+            if (hiddenParents.has(i)) continue;
+
             const ps = schedule.parents[i];
             if (!ps) continue;
             // Mandatory period (always from base schedule)
             const mandatory = ps.periods.find((p) => p.type === LEAVE_TYPES.MANDATORY);
             if (mandatory) {
-                let cur = new Date(mandatory.startDate);
+                const cur = new Date(mandatory.startDate);
                 while (cur < mandatory.endDate) {
                     const k = formatDateKey(cur);
                     if (!map[k]) map[k] = [];
@@ -539,7 +575,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
             }
             // All non-mandatory periods in unified order
             for (const uP of unifiedPeriodsMap.get(i) ?? []) {
-                let cur = new Date(uP.startDate);
+                const cur = new Date(uP.startDate);
                 while (cur < uP.endDate) {
                     const k = formatDateKey(cur);
                     if (!map[k]) map[k] = [];
@@ -554,7 +590,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
             }
         }
         return map;
-    }, [schedule, unifiedPeriodsMap, data.names]);
+    }, [schedule, unifiedPeriodsMap, data.names, hiddenParents]);
 
     const birthDateKey = formatDateKey(new Date(data.dueDate));
 
@@ -678,7 +714,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
             } else {
                 const durationWeeks = Math.round(
                     (period.endDate.getTime() - period.startDate.getTime()) /
-                        (7 * 24 * 3600 * 1000),
+                    (7 * 24 * 3600 * 1000),
                 );
                 setEditValue(String(durationWeeks));
             }
@@ -768,8 +804,8 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
             newPresetKey === 'custom'
                 ? newCustomName.trim() || 'Custom period'
                 : newPresetKey === 'flexible-extra'
-                  ? '📅 Flexible Leave'
-                  : preset?.label ?? newPresetKey;
+                    ? '📅 Flexible Leave'
+                    : preset?.label ?? newPresetKey;
 
         const newItem: ExtraLeaveItem = {
             id: generateExtraId(),
@@ -876,14 +912,14 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
         <div className="calendar-container">
             <div className="calendar-header">
                 <div className="header-left">
-                    <h1>🗓️ Leave Schedule</h1>
+                    <h1>{t.scheduleTitle}</h1>
                     <p className="header-subtitle">
-                        Due date:{' '}
+                        {t.dueDate}:{' '}
                         <DatePicker
                             selected={new Date(data.dueDate)}
                             onChange={handleDueDateChange}
                             dateFormat="dd/MM/yyyy"
-                            locale="es"
+                            locale={t.datePickerLocale}
                             calendarClassName="dp-dark"
                             showMonthDropdown
                             showYearDropdown
@@ -901,20 +937,42 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                         {data.parentCount === 2 && (
                             <>
                                 {' '}
-                                · Mode:{' '}
+                                · {t.mode}:{' '}
                                 <strong>
-                                    {data.leaveMode === 'together' ? 'Together' : 'Optimized'}
+                                    {data.leaveMode === 'together' ? t.modeLabelTogether : t.modeLabelOptimized}
                                 </strong>
                             </>
                         )}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="header-toolbar">
                     <button className="btn btn-edit" onClick={onEdit}>
-                        ✏️ Edit
+                        {t.btnEdit}
                     </button>
-                    <button className="btn btn-secondary" onClick={onReset} title="Start over">
-                        ↺ Reset
+                    <button className="btn btn-secondary" onClick={onReset} title={t.resetTooltip}>
+                        {t.btnReset}
+                    </button>
+                    <button
+                        className="btn btn-secondary"
+                        onClick={handleShare}
+                        title={t.btnShare}
+                    >
+                        {t.btnShare}
+                    </button>
+                    <button
+                        className="btn-icon btn btn-secondary"
+                        style={{ fontSize: '0.78rem', fontWeight: 700 }}
+                        onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+                        title={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a inglés'}
+                    >
+                        {lang === 'en' ? '🇪🇸 ES' : '🇬🇧 EN'}
+                    </button>
+                    <button
+                        className="btn btn-secondary"
+                        onClick={toggleTheme}
+                        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    >
+                        {theme === 'dark' ? '☀️' : '🌙'}
                     </button>
                 </div>
             </div>
@@ -939,14 +997,21 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                     <button
                                         className="btn-reset-custom"
                                         onClick={() => resetParentCustom(index)}
-                                        title="Reset to standard leave days"
+                                        title={t.resetCustomTooltip}
                                     >
-                                        ↺ Reset
+                                        {t.btnResetCustom}
                                     </button>
                                 )}
+                                <button
+                                    className="btn-toggle-parent"
+                                    onClick={() => toggleParentVisibility(index)}
+                                    title={hiddenParents.has(index) ? t.showParent : t.hideParent}
+                                >
+                                    {hiddenParents.has(index) ? '🙈' : '👁'}
+                                </button>
                             </div>
 
-                            <div className="summary-card-body">
+                            <div className={`summary-card-body${hiddenParents.has(index) ? ' summary-card-body--hidden' : ''}`}>
                                 {/* Mandatory period — always first, non-editable */}
                                 {(() => {
                                     const mp = parent.periods.find(
@@ -971,14 +1036,15 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                         LEAVE_TYPES.MANDATORY,
                                                         null,
                                                         customDurations[index] as
-                                                            | CustomDurationsForParent
-                                                            | undefined,
+                                                        | CustomDurationsForParent
+                                                        | undefined,
+                                                        t,
                                                     )}
                                                     <span
                                                         className="period-mandatory-badge"
-                                                        title="This leave is mandatory under Spanish law and cannot be modified"
+                                                        title={t.requiredByLawTooltip}
                                                     >
-                                                        🔒 Required by law
+                                                        {t.requiredByLaw}
                                                     </span>
                                                 </span>
                                                 <span className="period-dates">
@@ -1025,20 +1091,23 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                 }
                                             >
                                                 <div
-                                                    className={`period-drag-handle ${isEditingExtraDateThis ? 'period-drag-handle--hidden' : ''}`}
+                                                    className={`period-drag-handle ${isEditingExtraDateThis
+                                                        ? 'period-drag-handle--hidden'
+                                                        : ''
+                                                        }`}
                                                     draggable={
                                                         !isEditingExtraDateThis ? true : undefined
                                                     }
                                                     onDragStart={
                                                         !isEditingExtraDateThis
                                                             ? (e) => {
-                                                                  e.dataTransfer.effectAllowed =
-                                                                      'move';
-                                                                  handleUnifiedDragStart(
-                                                                      index,
-                                                                      uPeriod.key,
-                                                                  );
-                                                              }
+                                                                e.dataTransfer.effectAllowed =
+                                                                    'move';
+                                                                handleUnifiedDragStart(
+                                                                    index,
+                                                                    uPeriod.key,
+                                                                );
+                                                            }
                                                             : undefined
                                                     }
                                                     onDragEnd={
@@ -1049,7 +1118,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                     onClick={(e) => e.stopPropagation()}
                                                     title={
                                                         !isEditingExtraDateThis
-                                                            ? 'Drag to reorder'
+                                                            ? t.dragToReorder
                                                             : undefined
                                                     }
                                                 >
@@ -1065,7 +1134,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                         <span className="extra-period-badge">
                                                             {uPeriod.extraItem!.durationValue}
                                                             {uPeriod.extraItem!.durationUnit ===
-                                                            'weeks'
+                                                                'weeks'
                                                                 ? 'w'
                                                                 : 'd'}
                                                         </span>
@@ -1091,7 +1160,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                                     minEditExtraDate ?? undefined
                                                                 }
                                                                 dateFormat="dd/MM/yyyy"
-                                                                locale="es"
+                                                                locale={t.datePickerLocale}
                                                                 calendarClassName="dp-dark"
                                                                 showMonthDropdown
                                                                 showYearDropdown
@@ -1146,13 +1215,13 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             {formatDisplayDate(uPeriod.endDate)}
                                                             <span
                                                                 className="period-date-edit-icon"
-                                                                title="Click to edit start date"
+                                                                title={t.clickToEditStartDate}
                                                             >
                                                                 ✎
                                                             </span>
                                                             {hasCustomExtraStart && (
                                                                 <span className="period-custom-badge">
-                                                                    shifted
+                                                                    {t.shifted}
                                                                 </span>
                                                             )}
                                                         </span>
@@ -1160,7 +1229,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                 </div>
                                                 <button
                                                     className="btn-delete-extra"
-                                                    title="Remove"
+                                                    title={t.remove}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteExtra(
@@ -1217,17 +1286,20 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                             }}
                                         >
                                             <div
-                                                className={`period-drag-handle ${isEditingEither ? 'period-drag-handle--hidden' : ''}`}
+                                                className={`period-drag-handle ${isEditingEither
+                                                    ? 'period-drag-handle--hidden'
+                                                    : ''
+                                                    }`}
                                                 draggable={!isEditingEither ? true : undefined}
                                                 onDragStart={
                                                     !isEditingEither
                                                         ? (e) => {
-                                                              e.dataTransfer.effectAllowed = 'move';
-                                                              handleUnifiedDragStart(
-                                                                  index,
-                                                                  uPeriod.key,
-                                                              );
-                                                          }
+                                                            e.dataTransfer.effectAllowed = 'move';
+                                                            handleUnifiedDragStart(
+                                                                index,
+                                                                uPeriod.key,
+                                                            );
+                                                        }
                                                         : undefined
                                                 }
                                                 onDragEnd={
@@ -1237,7 +1309,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                 }
                                                 onClick={(e) => e.stopPropagation()}
                                                 title={
-                                                    !isEditingEither ? 'Drag to reorder' : undefined
+                                                    !isEditingEither ? t.dragToReorder : undefined
                                                 }
                                             >
                                                 ⠿
@@ -1291,13 +1363,19 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                                     e.stopPropagation()
                                                                 }
                                                             >
-                                                                <option value="days">days</option>
-                                                                <option value="weeks">weeks</option>
-                                                                <option value="months">months</option>
+                                                                <option value="days">
+                                                                    {lang === 'es' ? 'días' : 'days'}
+                                                                </option>
+                                                                <option value="weeks">
+                                                                    {lang === 'es' ? 'sem.' : 'weeks'}
+                                                                </option>
+                                                                <option value="months">
+                                                                    {lang === 'es' ? 'meses' : 'months'}
+                                                                </option>
                                                             </select>
                                                         ) : (
                                                             <span className="period-edit-unit">
-                                                                weeks
+                                                                {lang === 'es' ? 'sem.' : 'weeks'}
                                                             </span>
                                                         )}
                                                     </div>
@@ -1307,18 +1385,19 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             periodType,
                                                             uPeriod.lactanciaDays,
                                                             customDurations[index] as
-                                                                | CustomDurationsForParent
-                                                                | undefined,
+                                                            | CustomDurationsForParent
+                                                            | undefined,
+                                                            t,
                                                         )}
                                                         <span
                                                             className="period-edit-icon"
-                                                            title="Click to edit"
+                                                            title={t.clickToEdit}
                                                         >
                                                             ✎
                                                         </span>
                                                         {isCustom && (
                                                             <span className="period-custom-badge">
-                                                                custom
+                                                                {t.custom}
                                                             </span>
                                                         )}
                                                     </span>
@@ -1338,7 +1417,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             open
                                                             minDate={minEditStartDate ?? undefined}
                                                             dateFormat="dd/MM/yyyy"
-                                                            locale="es"
+                                                            locale={t.datePickerLocale}
                                                             calendarClassName="dp-dark"
                                                             showMonthDropdown
                                                             showYearDropdown
@@ -1390,13 +1469,13 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                         {formatDisplayDate(uPeriod.endDate)}
                                                         <span
                                                             className="period-date-edit-icon"
-                                                            title="Click to edit start date"
+                                                            title={t.clickToEditStartDate}
                                                         >
                                                             ✎
                                                         </span>
                                                         {hasCustomStart && (
                                                             <span className="period-custom-badge">
-                                                                shifted
+                                                                {t.shifted}
                                                             </span>
                                                         )}
                                                     </span>
@@ -1451,7 +1530,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                 if (remaining <= 0) return null;
                                                 return (
                                                     <option value="flexible-extra">
-                                                        📅 Flexible Leave ({remaining}w remaining)
+                                                        {t.flexibleExtra(remaining)}
                                                     </option>
                                                 );
                                             })()}
@@ -1462,13 +1541,11 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                 type="text"
                                                 value={newCustomName}
                                                 onChange={(e) => setNewCustomName(e.target.value)}
-                                                placeholder="Period name…"
+                                                placeholder={t.periodNamePlaceholder}
                                                 autoFocus
                                                 onKeyDown={(e) => {
-                                                    if (e.key === 'Enter')
-                                                        handleAddExtra(index);
-                                                    if (e.key === 'Escape')
-                                                        setAddingForParent(null);
+                                                    if (e.key === 'Enter') handleAddExtra(index);
+                                                    if (e.key === 'Escape') setAddingForParent(null);
                                                 }}
                                             />
                                         )}
@@ -1478,10 +1555,10 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                     newPresetKey === 'flexible-extra';
                                                 const maxWeeks = isFlexExtra
                                                     ? getRemainingFlexWeeks(
-                                                          index,
-                                                          customDurations,
-                                                          data.extraPeriods,
-                                                      )
+                                                        index,
+                                                        customDurations,
+                                                        data.extraPeriods,
+                                                    )
                                                     : undefined;
                                                 return (
                                                     <>
@@ -1498,9 +1575,9 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                                 setNewDurationValue(
                                                                     maxWeeks !== undefined
                                                                         ? Math.min(
-                                                                              Math.max(1, raw),
-                                                                              maxWeeks,
-                                                                          )
+                                                                            Math.max(1, raw),
+                                                                            maxWeeks,
+                                                                        )
                                                                         : Math.max(1, raw),
                                                                 );
                                                             }}
@@ -1518,29 +1595,33 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             onChange={(e) =>
                                                                 setNewDurationUnit(
                                                                     e.target.value as
-                                                                        | 'days'
-                                                                        | 'weeks',
+                                                                    | 'days'
+                                                                    | 'weeks',
                                                                 )
                                                             }
                                                         >
                                                             {!isFlexExtra && (
-                                                                <option value="days">days</option>
+                                                                <option value="days">
+                                                                    {lang === 'es' ? 'días' : 'days'}
+                                                                </option>
                                                             )}
-                                                            <option value="weeks">weeks</option>
+                                                            <option value="weeks">
+                                                                {lang === 'es' ? 'sem.' : 'weeks'}
+                                                            </option>
                                                         </select>
                                                     </>
                                                 );
                                             })()}
                                             <button
                                                 className="add-extra-confirm"
-                                                title="Add"
+                                                title={t.add}
                                                 onClick={() => handleAddExtra(index)}
                                             >
                                                 ✓
                                             </button>
                                             <button
                                                 className="add-extra-cancel"
-                                                title="Cancel"
+                                                title={t.cancel}
                                                 onClick={() => setAddingForParent(null)}
                                             >
                                                 ✕
@@ -1559,12 +1640,12 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                             setNewCustomName('');
                                         }}
                                     >
-                                        + Add period
+                                        {t.btnAddPeriod}
                                     </button>
                                 )}
 
                                 <div className="return-date">
-                                    <span className="return-label">🏢 Work timeline</span>
+                                    <span className="return-label">{t.workTimeline}</span>
                                     <div className="return-value">
                                         {(() => {
                                             const mandatory = parent.periods.find(
@@ -1572,12 +1653,19 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                             );
                                             const allLeave = [
                                                 ...(mandatory
-                                                    ? [{ start: new Date(mandatory.startDate), end: new Date(mandatory.endDate) }]
+                                                    ? [
+                                                        {
+                                                            start: new Date(mandatory.startDate),
+                                                            end: new Date(mandatory.endDate),
+                                                        },
+                                                    ]
                                                     : []),
-                                                ...(unifiedPeriodsMap.get(index) ?? []).map((uP) => ({
-                                                    start: new Date(uP.startDate),
-                                                    end: new Date(uP.endDate),
-                                                })),
+                                                ...(unifiedPeriodsMap.get(index) ?? []).map(
+                                                    (uP) => ({
+                                                        start: new Date(uP.startDate),
+                                                        end: new Date(uP.endDate),
+                                                    }),
+                                                ),
                                             ].sort(
                                                 (a, b) => a.start.getTime() - b.start.getTime(),
                                             );
@@ -1590,10 +1678,12 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             <div className="work-timeline-content">
                                                                 <div className="work-timeline-row">
                                                                     <span className="work-timeline-label">
-                                                                        Returns to work on
+                                                                        {t.returnsToWorkOn}
                                                                     </span>
                                                                     <span className="work-timeline-date">
-                                                                        {formatDisplayDate(parent.returnDate)}
+                                                                        {formatDisplayDate(
+                                                                            parent.returnDate,
+                                                                        )}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -1629,7 +1719,7 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                             <div className="work-timeline-content">
                                                                 <div className="work-timeline-row">
                                                                     <span className="work-timeline-label">
-                                                                        Stops working
+                                                                        {t.stopsWorking}
                                                                     </span>
                                                                     <span className="work-timeline-date">
                                                                         {formatDisplayDate(block.start)}
@@ -1637,10 +1727,9 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
                                                                 </div>
                                                                 <div className="work-timeline-row">
                                                                     <span className="work-timeline-label">
-                                                                        Returns to work
                                                                         {i === merged.length - 1
-                                                                            ? ' (final)'
-                                                                            : ''}
+                                                                            ? t.returnsToWorkFinal
+                                                                            : t.returnsToWork}
                                                                     </span>
                                                                     <span className="work-timeline-date">
                                                                         {formatDisplayDate(block.end)}
@@ -1662,63 +1751,71 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
 
             {/* Legend */}
             <div className="calendar-legend">
-                <div className="legend-title">Legend</div>
-                <div className="legend-items">
-                    <div className="legend-item">
-                        <div className="legend-color birthday-legend">👶</div>
-                        <span>Birth date</span>
+                <div className="legend-sections">
+                    <div className="legend-section">
+                        <div className="legend-title">{t.birthDate}</div>
+                        <div className="legend-items">
+                            <div className="legend-item">
+                                <div className="legend-color birthday-legend">👶</div>
+                                <span>{t.birthDate}</span>
+                            </div>
+                        </div>
                     </div>
                     {displayOrder.map((realIdx: number) => {
+                        if (hiddenParents.has(realIdx)) return null;
                         const parent: ParentSchedule = schedule.parents[realIdx];
                         const activeColor = activeColors[realIdx];
                         return (
-                            <React.Fragment key={parent.name}>
-                                <div className="legend-item">
-                                    <div
-                                        className="legend-color"
-                                        style={{ backgroundColor: activeColor.mandatory }}
-                                    />
-                                    <span>{parent.name} — Mandatory</span>
+                            <div key={parent.name} className="legend-section">
+                                <div className="legend-title">{parent.name}</div>
+                                <div className="legend-items">
+                                    <div className="legend-item">
+                                        <div
+                                            className="legend-color"
+                                            style={{ backgroundColor: activeColor.mandatory }}
+                                        />
+                                        <span>{t.parentMandatory(parent.name)}</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div
+                                            className="legend-color"
+                                            style={{ backgroundColor: activeColor.flexible }}
+                                        />
+                                        <span>{t.parentFlexible(parent.name)}</span>
+                                    </div>
+                                    {(unifiedPeriodsMap.get(realIdx) ?? []).some(
+                                        (p) => !p.isExtra && p.leaveType === LEAVE_TYPES.LACTANCIA,
+                                    ) && (
+                                            <div className="legend-item">
+                                                <div
+                                                    className="legend-color"
+                                                    style={{ backgroundColor: activeColor.lactancia }}
+                                                />
+                                                <span>{t.parentLactancia(parent.name)}</span>
+                                            </div>
+                                        )}
+                                    {(unifiedPeriodsMap.get(realIdx) ?? []).some(
+                                        (p) => !p.isExtra && p.leaveType === LEAVE_TYPES.CUIDADO,
+                                    ) && (
+                                            <div className="legend-item">
+                                                <div
+                                                    className="legend-color"
+                                                    style={{ backgroundColor: activeColor.cuidado }}
+                                                />
+                                                <span>{t.parentChildcare(parent.name)}</span>
+                                            </div>
+                                        )}
+                                    {(data.extraPeriods?.[realIdx]?.length ?? 0) > 0 && (
+                                        <div className="legend-item">
+                                            <div
+                                                className="legend-color"
+                                                style={{ backgroundColor: activeColor.extra }}
+                                            />
+                                            <span>{t.parentExtra(parent.name)}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="legend-item">
-                                    <div
-                                        className="legend-color"
-                                        style={{ backgroundColor: activeColor.flexible }}
-                                    />
-                                    <span>{parent.name} — Flexible</span>
-                                </div>
-                                {(unifiedPeriodsMap.get(realIdx) ?? []).some(
-                                    (p) => !p.isExtra && p.leaveType === LEAVE_TYPES.LACTANCIA,
-                                ) && (
-                                    <div className="legend-item">
-                                        <div
-                                            className="legend-color"
-                                            style={{ backgroundColor: activeColor.lactancia }}
-                                        />
-                                        <span>{parent.name} — Lactancia</span>
-                                    </div>
-                                )}
-                                {(unifiedPeriodsMap.get(realIdx) ?? []).some(
-                                    (p) => !p.isExtra && p.leaveType === LEAVE_TYPES.CUIDADO,
-                                ) && (
-                                    <div className="legend-item">
-                                        <div
-                                            className="legend-color"
-                                            style={{ backgroundColor: activeColor.cuidado }}
-                                        />
-                                        <span>{parent.name} — Childcare</span>
-                                    </div>
-                                )}
-                                {(data.extraPeriods?.[realIdx]?.length ?? 0) > 0 && (
-                                    <div className="legend-item">
-                                        <div
-                                            className="legend-color"
-                                            style={{ backgroundColor: activeColor.extra }}
-                                        />
-                                        <span>{parent.name} — Extra periods</span>
-                                    </div>
-                                )}
-                            </React.Fragment>
+                            </div>
                         );
                     })}
                 </div>
@@ -1743,33 +1840,32 @@ export default function CalendarView({ data, onEdit, onReset, onUpdateData }: Pr
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+import type { TranslationKeys } from '../../i18n/en';
+
 function formatLeaveType(
     type: LeaveType,
     lactanciaDays: number | null,
     customDurationsForParent: CustomDurationsForParent | undefined,
+    t: TranslationKeys,
 ): string {
     const custom = getNormalizedCustom(customDurationsForParent, type);
 
     switch (type) {
         case LEAVE_TYPES.MANDATORY: {
-            if (custom) {
-                return custom.unit === 'weeks'
-                    ? `Mandatory Leave (${custom.value} weeks)`
-                    : `Mandatory Leave (${Math.round(custom.value / 7)} weeks)`;
-            }
-            return `Mandatory Leave (${Math.round(DEFAULT_DURATIONS.mandatory / 7)} weeks)`;
+            const weeks = custom
+                ? custom.unit === 'weeks' ? custom.value : Math.round(custom.value / 7)
+                : Math.round(DEFAULT_DURATIONS.mandatory / 7);
+            return t.mandatoryLeave(weeks);
         }
         case LEAVE_TYPES.FLEXIBLE: {
-            if (custom) {
-                return custom.unit === 'weeks'
-                    ? `Flexible Leave (${custom.value} weeks)`
-                    : `Flexible Leave (${Math.round(custom.value / 7)} weeks)`;
-            }
-            return `Flexible Leave (${Math.round(DEFAULT_DURATIONS.flexible / 7)} weeks)`;
+            const weeks = custom
+                ? custom.unit === 'weeks' ? custom.value : Math.round(custom.value / 7)
+                : Math.round(DEFAULT_DURATIONS.flexible / 7);
+            return t.flexibleLeave(weeks);
         }
         case LEAVE_TYPES.LACTANCIA: {
-            if (custom) return `Accumulated Lactancia (${custom.value} ${custom.unit})`;
-            return `Accumulated Lactancia (${lactanciaDays} days)`;
+            if (custom) return t.accumulatedLactancia(custom.value, custom.unit);
+            return t.accumulatedLactancia(lactanciaDays ?? 0, 'days');
         }
         case LEAVE_TYPES.CUIDADO: {
             const totalWeeks = custom
@@ -1777,19 +1873,18 @@ function formatLeaveType(
                     ? custom.value
                     : Math.round(custom.value / 7)
                 : lactanciaDays
-                  ? Math.round(lactanciaDays / 7)
-                  : 0;
-            if (totalWeeks <= 0) return 'Childcare Leave';
+                    ? Math.round(lactanciaDays / 7)
+                    : 0;
+            if (totalWeeks <= 0) return t.childcareLeave;
             const paidWeeks = Math.min(totalWeeks, CUIDADO_PAID_WEEKS);
             const unpaidWeeks = totalWeeks - paidWeeks;
             return unpaidWeeks > 0
-                ? `Childcare Leave (${paidWeeks}w paid + ${unpaidWeeks}w unpaid)`
-                : `Childcare Leave (${paidWeeks} week${paidWeeks !== 1 ? 's' : ''} paid)`;
+                ? t.childcareLeavePaidUnpaid(paidWeeks, unpaidWeeks)
+                : t.childcareLeavePaid(paidWeeks);
         }
         case LEAVE_TYPES.EXTRA:
-            return 'Extra period';
+            return t.extraPeriod;
         default:
             return type;
     }
 }
-

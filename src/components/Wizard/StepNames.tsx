@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { COLOR_PALETTES } from '../../constants';
 import type { ColorPaletteId } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface Props {
     parentCount: number;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function StepNames({ parentCount, names, onChangeNames, colors, onChangeColors }: Props) {
+    const { t } = useLanguage();
     const nameRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const handleNameChange = (index: number, value: string) => {
@@ -28,17 +30,13 @@ export default function StepNames({ parentCount, names, onChangeNames, colors, o
     return (
         <div className="wizard-step fade-in">
             <div className="step-icon">✏️</div>
-            <h2>{parentCount === 1 ? "What's your name?" : "What are the parents' names?"}</h2>
-            <p className="step-description">
-                {parentCount === 1
-                    ? 'Enter your name and pick a color for your leave periods.'
-                    : 'Enter names for both parents and pick their colors.'}
-            </p>
+            <h2>{t.namesTitle}</h2>
+            <p className="step-description">{t.namesDescription}</p>
             <div className="names-group">
                 {Array.from({ length: parentCount }).map((_, i) => (
                     <div key={i} className="input-group">
                         <label htmlFor={`parent-name-${i}`}>
-                            {parentCount === 1 ? 'Your Name' : `Parent ${i + 1}`}
+                            {t.namePlaceholder(i + 1)}
                         </label>
                         <input
                             ref={(el) => {
@@ -54,7 +52,7 @@ export default function StepNames({ parentCount, names, onChangeNames, colors, o
                                     nameRefs.current[i + 1]?.focus();
                                 }
                             }}
-                            placeholder="Enter name..."
+                            placeholder={t.namePlaceholder(i + 1)}
                             className="text-input"
                             autoFocus={i === 0}
                         />

@@ -56,13 +56,13 @@
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle);
+    background: var(--border-subtle);
     color: var(--text-muted);
 }
 
 .btn-edit:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-input);
     color: var(--text-primary);
     transform: translateY(-1px);
 }
@@ -76,12 +76,17 @@
 }
 
 .summary-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-card);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
     overflow: hidden;
     border-top: 3px solid;
+    transition: box-shadow 0.25s ease;
+}
+
+[data-theme="light"] .summary-card {
+    box-shadow: var(--shadow-card);
 }
 
 .summary-card-header {
@@ -103,8 +108,38 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    overflow: hidden;
+    max-height: 9999px;
+    transition: max-height 0.35s ease, padding 0.25s ease, opacity 0.25s ease;
+    opacity: 1;
 }
 
+.summary-card-body--hidden {
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    opacity: 0;
+}
+
+/* Toggle visibility button on card header */
+.btn-toggle-parent {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 2px;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    line-height: 1;
+    color: white;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.btn-toggle-parent:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
 
 .summary-period {
     display: flex;
@@ -147,7 +182,7 @@
 }
 
 .period-dates-editable:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--border-subtle);
 }
 
 .period-date-edit-icon {
@@ -217,7 +252,7 @@
 }
 
 .period-row-editable:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--border-subtle);
 }
 
 /* Read-only period rows (mandatory leave) */
@@ -297,8 +332,8 @@
     width: 68px;
     padding: 3px 8px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
     color: var(--text-primary);
     font-size: 0.85rem;
     font-weight: 600;
@@ -327,8 +362,8 @@
 .period-edit-unit-select {
     padding: 3px 6px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
     color: var(--text-primary);
     font-size: 0.8rem;
     font-weight: 600;
@@ -344,7 +379,6 @@
 
 /* Reset custom durations button inside card header */
 .btn-reset-custom {
-    margin-left: auto;
     background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.35);
     color: #F59E0B;
@@ -368,7 +402,7 @@
 .return-date {
     margin-top: 0.5rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -436,8 +470,8 @@
 
 /* Legend */
 .calendar-legend {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 1rem 1.25rem;
     margin-bottom: 2rem;
@@ -449,7 +483,21 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-muted);
-    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.1rem;
+}
+
+.legend-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .legend-items {
@@ -490,8 +538,8 @@
 
 /* Month grid */
 .month-grid {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
     padding: 1.25rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -499,7 +547,7 @@
 
 .month-grid:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .month-title {
@@ -591,16 +639,16 @@
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(17, 19, 34, 0.95);
+    background: var(--bg-secondary);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--border-input);
     border-radius: 12px;
     padding: 0;
     min-width: 220px;
     pointer-events: none;
     z-index: 100;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border-subtle);
     animation: tooltipFadeIn 0.15s ease;
     overflow: hidden;
 }
@@ -622,7 +670,7 @@
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-subtle);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     white-space: nowrap;
@@ -633,7 +681,7 @@
     font-size: 0.75rem;
     color: #10B981;
     font-weight: 600;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .tooltip-entries {
@@ -681,7 +729,7 @@
 }
 
 .extra-period-row:hover {
-    background: var(--surface-hover);
+    background: var(--border-subtle);
 }
 
 .extra-period-name {
@@ -731,7 +779,7 @@
     width: 100%;
     padding: 0.45rem 0.75rem;
     margin-top: 0.25rem;
-    border: 1.5px dashed var(--border-color);
+    border: 1.5px dashed var(--border-input);
     border-radius: 8px;
     background: transparent;
     color: var(--text-muted);
@@ -762,10 +810,10 @@
 .add-extra-preset-select {
     width: 100%;
     padding: 0.4rem 0.6rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--border-input);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #E8EAED;
+    background: var(--bg-input);
+    color: var(--text-primary);
     font-size: 0.82rem;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
@@ -782,10 +830,10 @@
 .add-extra-name-input {
     width: 100%;
     padding: 0.35rem 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--border-input);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #E8EAED;
+    background: var(--bg-input);
+    color: var(--text-primary);
     font-size: 0.82rem;
     font-family: 'Inter', sans-serif;
     box-sizing: border-box;
@@ -812,8 +860,8 @@
 .add-extra-unit-select {
     padding: 3px 6px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
     color: var(--text-primary);
     font-size: 0.8rem;
     font-weight: 600;
@@ -847,7 +895,7 @@
     padding: 0.3rem 0.6rem;
     border: none;
     border-radius: 6px;
-    background: var(--surface-secondary);
+    background: var(--bg-input);
     color: var(--text-muted);
     font-size: 0.82rem;
     cursor: pointer;
@@ -863,6 +911,95 @@
 .load-more {
     text-align: center;
     margin-top: 2rem;
+}
+
+/* Header toolbar row */
+.header-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ── react-datepicker theme ─────────────────────────────────────────────────*/
+
+/* Popup container */
+.dp-dark.react-datepicker {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-input);
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: var(--text-primary);
+}
+
+.dp-dark.react-datepicker .react-datepicker__triangle {
+    display: none;
+}
+
+.dp-dark.react-datepicker .react-datepicker__header {
+    background: var(--bg-input);
+    border-bottom: 1px solid var(--border-subtle);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding-top: 10px;
+}
+
+.dp-dark.react-datepicker .react-datepicker__current-month {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.dp-dark.react-datepicker .react-datepicker__navigation-icon::before {
+    border-color: var(--text-muted);
+}
+
+.dp-dark.react-datepicker .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+    border-color: var(--text-primary);
+}
+
+.dp-dark.react-datepicker .react-datepicker__day-name {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.dp-dark.react-datepicker .react-datepicker__day {
+    color: var(--text-secondary);
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.dp-dark.react-datepicker .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+    background: rgba(79, 70, 229, 0.25);
+    color: var(--text-primary);
+}
+
+.dp-dark.react-datepicker .react-datepicker__day--selected,
+.dp-dark.react-datepicker .react-datepicker__day--keyboard-selected {
+    background: #4f46e5;
+    color: #fff;
+    font-weight: 600;
+}
+
+.dp-dark.react-datepicker .react-datepicker__day--selected:hover,
+.dp-dark.react-datepicker .react-datepicker__day--keyboard-selected:hover {
+    background: #6366f1;
+}
+
+.dp-dark.react-datepicker .react-datepicker__day--disabled,
+.dp-dark.react-datepicker .react-datepicker__day--outside-month {
+    color: var(--text-muted);
+    opacity: 0.35;
+}
+
+.dp-dark.react-datepicker .react-datepicker__month-dropdown-container--select select,
+.dp-dark.react-datepicker .react-datepicker__year-dropdown-container--select select {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-input);
+    border-radius: 6px;
+    padding: 2px 4px;
 }
 
 /* Responsive */
@@ -881,5 +1018,53 @@
 
     .months-container {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ── Print styles ───────────────────────────────────────────────────────────*/
+@media print {
+    .calendar-container {
+        padding: 0.5rem;
+        max-width: 100%;
+    }
+
+    /* Hide all interactive controls */
+    .btn,
+    .btn-edit,
+    .btn-reset-custom,
+    .btn-add-extra,
+    .btn-delete-extra,
+    .btn-toggle-parent,
+    .period-drag-handle,
+    .period-edit-icon,
+    .period-date-edit-icon,
+    .add-extra-form,
+    .header-toolbar {
+        display: none !important;
+    }
+
+    /* White background for all cards */
+    .summary-card,
+    .month-grid,
+    .calendar-legend {
+        background: #fff !important;
+        border-color: #e5e7eb !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    /* Keep the card body visible when printing */
+    .summary-card-body--hidden {
+        max-height: none !important;
+        padding: 1.25rem !important;
+        opacity: 1 !important;
+    }
+
+    .summary-cards {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .months-container {
+        grid-template-columns: repeat(3, 1fr);
     }
 }

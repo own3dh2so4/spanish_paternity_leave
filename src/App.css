@@ -1,14 +1,49 @@
 /* ============================================
-   Design Tokens
+   Design Tokens — Dark (default)
    ============================================ */
-:root {
+:root,
+[data-theme="dark"] {
     --bg-primary: #0B0D17;
     --bg-secondary: #111322;
+    --bg-card: #151828;
+    --bg-input: #1a1d2e;
     --text-primary: #E8EAED;
     --text-secondary: #B0B3BC;
     --text-muted: #6B7084;
     --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-input: rgba(255, 255, 255, 0.12);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --scrollbar-track: #0B0D17;
+    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+    --bg-gradient-1: rgba(79, 70, 229, 0.08);
+    --bg-gradient-2: rgba(219, 39, 119, 0.06);
+    --bg-gradient-3: rgba(16, 185, 129, 0.04);
+    --bg-grid-line: rgba(255, 255, 255, 0.02);
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ============================================
+   Design Tokens — Light
+   ============================================ */
+[data-theme="light"] {
+    --bg-primary: #F4F6FB;
+    --bg-secondary: #EAEEF7;
+    --bg-card: #FFFFFF;
+    --bg-input: #F0F2FA;
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #9CA3AF;
+    --border-subtle: rgba(0, 0, 0, 0.07);
+    --border-input: rgba(0, 0, 0, 0.15);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --scrollbar-track: #F4F6FB;
+    --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+    --bg-gradient-1: rgba(79, 70, 229, 0.05);
+    --bg-gradient-2: rgba(219, 39, 119, 0.04);
+    --bg-gradient-3: rgba(16, 185, 129, 0.03);
+    --bg-grid-line: rgba(0, 0, 0, 0.03);
 }
 
 /* ============================================
@@ -35,6 +70,7 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.25s ease, color 0.25s ease;
 }
 
 #root {
@@ -56,9 +92,9 @@ body {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(ellipse at 20% 20%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(219, 39, 119, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+        radial-gradient(ellipse at 20% 20%, var(--bg-gradient-1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, var(--bg-gradient-2) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, var(--bg-gradient-3) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -70,8 +106,8 @@ body {
     width: 100%;
     height: 100%;
     background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        linear-gradient(var(--bg-grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid-line) 1px, transparent 1px);
     background-size: 48px 48px;
     pointer-events: none;
     z-index: 0;
@@ -92,16 +128,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-primary);
+    background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scrollbar-thumb-hover);
 }
 
 /* ============================================
@@ -110,4 +146,19 @@ body {
 ::selection {
     background: rgba(79, 70, 229, 0.3);
     color: var(--text-primary);
+}
+
+/* ============================================
+   Print
+   ============================================ */
+@media print {
+    .bg-gradient,
+    .bg-grid {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
 }

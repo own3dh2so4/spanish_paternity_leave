@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
+import { enGB } from 'date-fns/locale';
 import { es } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useLanguage } from '../../i18n/LanguageContext';
 
-// Register Spanish locale so the calendar starts on Monday and shows DD/MM/YYYY
+registerLocale('en-GB', enGB);
 registerLocale('es', es);
 
 interface Props {
@@ -19,6 +21,8 @@ function toISODate(date: Date): string {
 }
 
 export default function StepDueDate({ value, onChange }: Props) {
+    const { t } = useLanguage();
+
     const today = useMemo(() => {
         const d = new Date();
         d.setHours(0, 0, 0, 0);
@@ -38,18 +42,16 @@ export default function StepDueDate({ value, onChange }: Props) {
     return (
         <div className="wizard-step fade-in">
             <div className="step-icon">📅</div>
-            <h2>When is the expected due date?</h2>
-            <p className="step-description">
-                Select the approximate date of birth (DD/MM/YYYY). Only future dates are allowed.
-            </p>
+            <h2>{t.dueDateTitle}</h2>
+            <p className="step-description">{t.dueDateDescription}</p>
             <div className="input-group datepicker-group">
                 <DatePicker
                     selected={selectedDate}
                     onChange={handleChange}
                     dateFormat="dd/MM/yyyy"
-                    locale="es"
+                    locale={t.datePickerLocale}
                     minDate={today}
-                    placeholderText="DD/MM/YYYY"
+                    placeholderText={t.dueDatePlaceholder}
                     showMonthDropdown
                     showYearDropdown
                     dropdownMode="select"

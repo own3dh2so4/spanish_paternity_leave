@@ -6,8 +6,10 @@ import StepNames from './StepNames';
 import StepLeaveMode from './StepLeaveMode';
 import StepFirstParent from './StepFirstParent';
 import StepCuidado from './StepCuidado';
-import { WIZARD_STEPS, LEAVE_MODES } from '../../constants';
+import { LEAVE_MODES } from '../../constants';
 import type { ColorPaletteId, LeaveMode, WizardData } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { useTheme } from '../../theme/ThemeContext';
 import './Wizard.css';
 
 interface Props {
@@ -16,6 +18,9 @@ interface Props {
 }
 
 export default function Wizard({ onComplete, initialData }: Props) {
+    const { t, lang, setLang } = useLanguage();
+    const { theme, toggleTheme } = useTheme();
+
     const [step, setStep] = useState(0);
     const [dueDate, setDueDate] = useState(initialData?.dueDate ?? '');
     const [parentCount, setParentCount] = useState<1 | 2>(initialData?.parentCount ?? 1);
@@ -31,14 +36,23 @@ export default function Wizard({ onComplete, initialData }: Props) {
         initialData?.cuidadoWeeks ?? [null, null],
     );
 
+    const wizardSteps = [
+        { id: 'dueDate', label: t.stepDueDate },
+        { id: 'parentCount', label: t.stepParents },
+        { id: 'names', label: t.stepNames },
+        { id: 'leaveMode', label: t.stepLeaveMode },
+        { id: 'firstParent', label: t.stepWhoStarts },
+        { id: 'cuidado', label: t.stepChildcare },
+    ];
+
     const getVisibleSteps = () => {
         if (parentCount === 1) {
-            return WIZARD_STEPS.filter((s) => s.id !== 'leaveMode' && s.id !== 'firstParent');
+            return wizardSteps.filter((s) => s.id !== 'leaveMode' && s.id !== 'firstParent');
         }
         if (leaveMode === LEAVE_MODES.TOGETHER) {
-            return WIZARD_STEPS.filter((s) => s.id !== 'firstParent');
+            return wizardSteps.filter((s) => s.id !== 'firstParent');
         }
-        return WIZARD_STEPS;
+        return wizardSteps;
     };
 
     const visibleSteps = getVisibleSteps();
@@ -47,20 +61,13 @@ export default function Wizard({ onComplete, initialData }: Props) {
     const canProceed = (): boolean => {
         const currentStepId = visibleSteps[step]?.id;
         switch (currentStepId) {
-            case 'dueDate':
-                return dueDate !== '';
-            case 'parentCount':
-                return parentCount === 1 || parentCount === 2;
-            case 'names':
-                return names.slice(0, parentCount).every((n) => n.trim() !== '');
-            case 'leaveMode':
-                return true; // leaveMode is always a valid value (typed as LeaveMode)
-            case 'firstParent':
-                return firstParent === 0 || firstParent === 1;
-            case 'cuidado':
-                return true;
-            default:
-                return false;
+            case 'dueDate': return dueDate !== '';
+            case 'parentCount': return parentCount === 1 || parentCount === 2;
+            case 'names': return names.slice(0, parentCount).every((n) => n.trim() !== '');
+            case 'leaveMode': return true;
+            case 'firstParent': return firstParent === 0 || firstParent === 1;
+            case 'cuidado': return true;
+            default: return false;
         }
     };
 
@@ -136,8 +143,24 @@ export default function Wizard({ onComplete, initialData }: Props) {
         <div className="wizard-container">
             <div className="wizard-card">
                 <div className="wizard-header">
-                    <h1>🇪🇸 Paternity Leave Planner</h1>
-                    <p className="wizard-subtitle">Plan your Spanish paternity/maternity leave</p>
+                    <div className="wizard-header-controls">
+                        <button
+                            className="btn-icon"
+                            onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+                            title={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a inglés'}
+                        >
+                            {lang === 'en' ? '🇪🇸 ES' : '🇬🇧 EN'}
+                        </button>
+                        <button
+                            className="btn-icon"
+                            onClick={toggleTheme}
+                            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        >
+                            {theme === 'dark' ? '☀️' : '🌙'}
+                        </button>
+                    </div>
+                    <h1>{t.wizardTitle}</h1>
+                    <p className="wizard-subtitle">{t.wizardSubtitle}</p>
                 </div>
 
                 <ProgressBar
@@ -155,7 +178,7 @@ export default function Wizard({ onComplete, initialData }: Props) {
                         onClick={handleBack}
                         disabled={step === 0}
                     >
-                        ← Back
+                        {t.back}
                     </button>
                     <button
                         type="button"
@@ -163,7 +186,7 @@ export default function Wizard({ onComplete, initialData }: Props) {
                         onClick={handleNext}
                         disabled={!canProceed()}
                     >
-                        {step === totalSteps - 1 ? 'Calculate →' : 'Next →'}
+                        {step === totalSteps - 1 ? t.calculate : t.next}
                     </button>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 import { COLOR_PALETTES, CUIDADO_TOTAL_WEEKS, CUIDADO_PAID_WEEKS } from '../../constants';
 import type { ColorPaletteId } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface Props {
     parentCount: number;
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export default function StepCuidado({ parentCount, names, colors, values, onChange }: Props) {
+    const { t } = useLanguage();
+
     const handleToggle = (i: number, active: boolean) => {
         const updated = [...values];
         updated[i] = active ? CUIDADO_PAID_WEEKS : null;
@@ -25,27 +28,19 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
     return (
         <div className="wizard-step fade-in">
             <div className="step-icon">🧒</div>
-            <h2>Childcare leave (up to age 8)</h2>
-            <p className="step-description">
-                Each parent can request up to {CUIDADO_TOTAL_WEEKS} weeks of childcare leave any
-                time while the child is under 8 years old.
-            </p>
+            <h2>{t.cuidadoTitle}</h2>
+            <p className="step-description">{t.cuidadoDescription}</p>
 
             <div className="cuidado-info-box">
                 <div className="cuidado-info-row">
                     <span className="cuidado-paid-badge">{CUIDADO_PAID_WEEKS}w paid</span>
-                    <span>
-                        Weeks 1–{CUIDADO_PAID_WEEKS} are fully paid by Social Security
-                    </span>
+                    <span>{t.cuidadoWeeksHint(CUIDADO_PAID_WEEKS)}</span>
                 </div>
                 <div className="cuidado-info-row">
                     <span className="cuidado-unpaid-badge">
                         +{CUIDADO_TOTAL_WEEKS - CUIDADO_PAID_WEEKS}w unpaid
                     </span>
-                    <span>
-                        Weeks {CUIDADO_PAID_WEEKS + 1}–{CUIDADO_TOTAL_WEEKS} are unpaid but
-                        job-protected
-                    </span>
+                    <span>{t.cuidadoMax(CUIDADO_TOTAL_WEEKS)}</span>
                 </div>
             </div>
 
@@ -63,7 +58,7 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
                         >
                             <div className="cuidado-toggle-row">
                                 <span className="cuidado-parent-name" style={{ color: accent }}>
-                                    {names[i] || `Parent ${i + 1}`}
+                                    {names[i] || t.namePlaceholder(i + 1)}
                                 </span>
                                 <button
                                     type="button"
@@ -76,7 +71,7 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
 
                             {isActive && (
                                 <div className="cuidado-weeks-section">
-                                    <p className="cuidado-weeks-label">How many weeks?</p>
+                                    <p className="cuidado-weeks-label">{t.cuidadoWeeks}</p>
                                     <div className="cuidado-week-picker">
                                         {Array.from({ length: CUIDADO_TOTAL_WEEKS }, (_, w) => w + 1).map(
                                             (w) => (

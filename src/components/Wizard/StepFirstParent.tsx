@@ -1,5 +1,6 @@
 import { COLOR_PALETTES } from '../../constants';
 import type { ColorPaletteId } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface Props {
     value: number;
@@ -9,16 +10,12 @@ interface Props {
 }
 
 export default function StepFirstParent({ value, onChange, parentNames, colors }: Props) {
+    const { t } = useLanguage();
     return (
         <div className="wizard-step fade-in">
             <div className="step-icon">🏁</div>
-            <h2>Who stays home first after birth?</h2>
-            <p className="step-description">
-                In optimized mode both parents take the mandatory 6 weeks together. After that,{' '}
-                <strong>one parent stays home and takes their flexible leave right away</strong>,
-                while the other goes back to work temporarily and takes their flexible leave later —
-                keeping someone home for as long as possible.
-            </p>
+            <h2>{t.firstParentTitle}</h2>
+            <p className="step-description">{t.firstParentDescription}</p>
             <div className="toggle-group">
                 {parentNames.map((name, index) => {
                     const activeColor = colors?.[index]
