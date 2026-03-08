@@ -83,6 +83,37 @@ export type CustomDurations = Record<number, CustomDurationsForParent>;
 export type CustomStartDatesForParent = Partial<Record<LeaveType, string>>;
 export type CustomStartDates = Record<number, CustomStartDatesForParent>;
 
+/**
+ * A single leave period with concrete ISO date boundaries.
+ * This is the canonical representation used by the calendar after the wizard.
+ * All date arithmetic is done before the calendar renders; the calendar only reads these.
+ */
+export interface ComputedPeriod {
+    type: LeaveType;
+    /** ISO date string YYYY-MM-DD (local time) — inclusive start */
+    startDate: string;
+    /** ISO date string YYYY-MM-DD (local time) — exclusive end */
+    endDate: string;
+    /** Working-day count for lactancia; null for all other period types. */
+    days: number | null;
+    // Extra-period metadata (only present when type === 'extra')
+    isExtra?: true;
+    extraId?: string;
+    extraName?: string;
+    /** Original preset key used when the item was created (e.g. 'vacation', 'flexible-extra'). */
+    extraPresetKey?: string;
+    durationValue?: number;
+    durationUnit?: 'days' | 'weeks';
+}
+
+/** Full leave schedule for one parent, computed from WizardData. */
+export interface ComputedParentSchedule {
+    name: string;
+    colorId: ColorPaletteId;
+    /** Mandatory period first, then non-mandatory in display order. */
+    periods: ComputedPeriod[];
+}
+
 /** Data persisted to localStorage and passed to CalendarView. */
 export interface WizardData {
     dueDate: string;
@@ -92,6 +123,13 @@ export interface WizardData {
     leaveMode: LeaveMode;
     firstParent: number;
     lactanciaFirst?: boolean[];
+    /**
+     * Pre-computed concrete schedule. When present, the calendar renders this
+     * directly and never re-runs leave-law formulas. Absent only in legacy data.
+     */
+    schedule?: ComputedParentSchedule[];
+    // Legacy wizard-state fields — kept optional for backwards compatibility with
+    // existing localStorage data that lacks `schedule`.
     customDurations?: CustomDurations;
     customStartDates?: CustomStartDates;
     /** Weeks of childcare leave (up to age 8) per parent. null = not opted in. */

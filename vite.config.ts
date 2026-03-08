@@ -7,5 +7,6 @@ export default defineConfig({
     base: '/spanish_paternity_leave/',
     test: {
         environment: 'jsdom',
+        setupFiles: ['./src/test-setup.ts'],
     },
 });

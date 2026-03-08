@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { STORAGE_KEY } from './constants';
 import { decompressWizardData } from './utils/shareUtils';
+import { computeSchedule } from './utils/calendarHelpers';
 import type { WizardData } from './types';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { ThemeProvider } from './theme/ThemeContext';
@@ -38,7 +39,8 @@ export default function App() {
     const [showCalendar, setShowCalendar] = useState(!!savedData);
 
     const handleWizardComplete = (data: WizardData) => {
-        setSavedData(data);
+        const withSchedule = { ...data, schedule: computeSchedule(data) };
+        setSavedData(withSchedule);
         setShowCalendar(true);
     };
 
