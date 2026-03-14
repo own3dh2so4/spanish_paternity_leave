@@ -103,7 +103,7 @@ export interface ComputedPeriod {
     /** Original preset key used when the item was created (e.g. 'vacation', 'flexible-extra'). */
     extraPresetKey?: string;
     durationValue?: number;
-    durationUnit?: 'days' | 'weeks';
+    durationUnit?: EditUnit;
 }
 
 /** Full leave schedule for one parent, computed from WizardData. */

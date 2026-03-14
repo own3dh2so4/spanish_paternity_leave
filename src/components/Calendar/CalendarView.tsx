@@ -188,38 +188,42 @@ export default function CalendarView({
 
     // ── Fully-wired edit callbacks ─────────────────────────────────────────────
     // All hook state is read here; components receive simple () => void closures.
+    // Each edit function now handles cross-parent cascading internally via
+    // cascadeAllFromEdit, so no separate wrapper is needed.
+
+    const fp = data.firstParent ?? 0;
 
     const handleConfirmEdit = () => {
         periodEdit.commitEdit((parentIdx, periodKey, value, unit) => {
-            const newSchedule = resizePeriod(effectiveSchedule, parentIdx, periodKey, value, unit);
+            const newSchedule = resizePeriod(effectiveSchedule, parentIdx, periodKey, value, unit, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };
 
     const handleConfirmStartDate = (date: Date) => {
         startDateEdit.commitStartDate(date, (parentIdx, periodKey, iso) => {
-            const newSchedule = shiftPeriodStart(effectiveSchedule, parentIdx, periodKey, iso);
+            const newSchedule = shiftPeriodStart(effectiveSchedule, parentIdx, periodKey, iso, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };
 
     const handleDrop = (e: React.DragEvent, parentIndex: number, targetKey: string) => {
         dragSort.handleUnifiedDrop(e, parentIndex, targetKey, (parentIdx, fromKey, toKey) => {
-            const newSchedule = reorderPeriods(effectiveSchedule, parentIdx, fromKey, toKey);
+            const newSchedule = reorderPeriods(effectiveSchedule, parentIdx, fromKey, toKey, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };
 
     const handleConfirmAddExtra = (parentIndex: number) => {
         extraPeriods.handleAddExtra(parentIndex, (pIdx, item) => {
-            const newSchedule = addExtraPeriod(effectiveSchedule, pIdx, item);
+            const newSchedule = addExtraPeriod(effectiveSchedule, pIdx, item, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };
 
     const handleDeleteExtra = (parentIndex: number, extraId: string) => {
         extraPeriods.handleDeleteExtra(parentIndex, extraId, (pIdx, eid) => {
-            const newSchedule = removeExtraPeriod(effectiveSchedule, pIdx, eid);
+            const newSchedule = removeExtraPeriod(effectiveSchedule, pIdx, eid, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };
@@ -228,7 +232,7 @@ export default function CalendarView({
         const editing = extraPeriods.editingExtraDate;
         if (!editing) return;
         extraPeriods.commitExtraStartDate(editing.parentIndex, editing.itemId, date, (pIdx, extraId, iso) => {
-            const newSchedule = shiftPeriodStart(effectiveSchedule, pIdx, extraId, iso);
+            const newSchedule = shiftPeriodStart(effectiveSchedule, pIdx, extraId, iso, fp);
             onUpdateData({ ...data, schedule: newSchedule });
         });
     };

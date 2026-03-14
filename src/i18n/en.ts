@@ -214,7 +214,12 @@ export const en: TranslationKeys = {
     // Leave type labels
     mandatoryLeave: (weeks: number) => `Mandatory Leave (${weeks} weeks)`,
     flexibleLeave: (weeks: number) => `Flexible Leave (${weeks} weeks)`,
-    accumulatedLactancia: (val: number | string, unit: string) => `Accumulated Lactancia (${val} ${unit})`,
+    accumulatedLactancia: (val: number | string, unit: string) => {
+        const isSingular = Number(val) === 1;
+        if (unit === 'days') return `Accumulated Lactancia (${val} day${isSingular ? '' : 's'})`;
+        if (unit === 'weeks') return `Accumulated Lactancia (${val} week${isSingular ? '' : 's'})`;
+        return `Accumulated Lactancia (${val} month${isSingular ? '' : 's'})`;
+    },
     childcareLeavePaidUnpaid: (paid: number, unpaid: number) => `Childcare Leave (${paid}w paid + ${unpaid}w unpaid)`,
     childcareLeavePaid: (weeks: number) => `Childcare Leave (${weeks} week${weeks !== 1 ? 's' : ''} paid)`,
     childcareLeave: 'Childcare Leave',

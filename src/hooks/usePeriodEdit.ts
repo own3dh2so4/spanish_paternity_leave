@@ -16,7 +16,7 @@ interface UsePeriodEditReturn {
     inputRef: React.RefObject<HTMLInputElement | null>;
     startEditing: (parentIndex: number, period: ComputedPeriod) => void;
     commitEdit: (
-        onCommit: (parentIdx: number, periodKey: string, value: number, unit: 'days' | 'weeks') => void,
+        onCommit: (parentIdx: number, periodKey: string, value: number, unit: EditUnit) => void,
     ) => void;
     cancelEdit: () => void;
     setEditValue: React.Dispatch<React.SetStateAction<string>>;
@@ -34,7 +34,10 @@ export function usePeriodEdit(): UsePeriodEditReturn {
         const periodKey = period.isExtra ? (period.extraId ?? period.type) : period.type;
         setEditingPeriod({ parentIndex, periodKey, periodType });
 
-        if (periodType === LEAVE_TYPES.LACTANCIA) {
+        if (period.durationValue !== undefined && period.durationUnit !== undefined) {
+            setEditValue(String(period.durationValue));
+            setEditUnit(period.durationUnit);
+        } else if (periodType === LEAVE_TYPES.LACTANCIA) {
             // Use working-day count if available, otherwise compute from calendar duration
             const days = period.days ?? daysBetween(
                 parseLocalDate(period.startDate),
@@ -55,7 +58,7 @@ export function usePeriodEdit(): UsePeriodEditReturn {
     };
 
     const commitEdit = (
-        onCommit: (parentIdx: number, periodKey: string, value: number, unit: 'days' | 'weeks') => void,
+        onCommit: (parentIdx: number, periodKey: string, value: number, unit: EditUnit) => void,
     ) => {
         if (!editingPeriod) return;
         const { parentIndex, periodKey, periodType } = editingPeriod;
@@ -64,10 +67,7 @@ export function usePeriodEdit(): UsePeriodEditReturn {
             periodType === LEAVE_TYPES.LACTANCIA ? rawVal : Math.round(rawVal);
 
         if (!isNaN(val) && val > 0) {
-            const unit = (editUnit === 'months' ? 'weeks' : editUnit) as 'days' | 'weeks';
-            const normalizedVal =
-                editUnit === 'months' ? Math.round(val * 4.33) : val;
-            onCommit(parentIndex, periodKey, normalizedVal, unit);
+            onCommit(parentIndex, periodKey, val, editUnit);
         }
         setEditingPeriod(null);
     };

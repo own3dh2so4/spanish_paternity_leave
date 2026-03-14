@@ -95,7 +95,12 @@ export const es: TranslationKeys = {
     // Leave type labels
     mandatoryLeave: (weeks: number) => `Baja obligatoria (${weeks} semanas)`,
     flexibleLeave: (weeks: number) => `Baja flexible (${weeks} semanas)`,
-    accumulatedLactancia: (val: number | string, unit: string) => `Lactancia acumulada (${val} ${unit === 'days' ? 'días' : unit === 'weeks' ? 'semanas' : 'meses'})`,
+    accumulatedLactancia: (val: number | string, unit: string) => {
+        const isSingular = Number(val) === 1;
+        if (unit === 'days') return `Lactancia acumulada (${val} día${isSingular ? '' : 's'})`;
+        if (unit === 'weeks') return `Lactancia acumulada (${val} semana${isSingular ? '' : 's'})`;
+        return `Lactancia acumulada (${val} mes${isSingular ? '' : 'es'})`;
+    },
     childcareLeavePaidUnpaid: (paid: number, unpaid: number) => `Permiso de cuidado (${paid} sem. retribuidas + ${unpaid} sem. no retribuidas)`,
     childcareLeavePaid: (weeks: number) => `Permiso de cuidado (${weeks} semana${weeks !== 1 ? 's' : ''} retribuida${weeks !== 1 ? 's' : ''})`,
     childcareLeave: 'Permiso de cuidado del hijo',

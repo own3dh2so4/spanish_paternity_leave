@@ -13,6 +13,7 @@ import type {
     CustomDurationsForParent,
     CustomStartDates,
     CustomStartDatesForParent,
+    EditUnit,
     ExtraLeaveItem,
     LeavePeriod,
     LeaveType,
@@ -24,8 +25,14 @@ import {
     addMonths,
     addWorkingDays,
     calculateLeaveSchedule,
+    countWorkingDays,
     formatDateKey,
 } from './leaveCalculator';
+import {
+    cascadeAllFromEdit,
+    recomputeEnd,
+    tightCascadeAll,
+} from './periodChain';
 import type { TranslationKeys } from '../i18n/en';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -402,8 +409,12 @@ export function formatLeaveType(period: ComputedPeriod, t: TranslationKeys): str
             return t.mandatoryLeave(Math.round(calDays / 7));
         case LEAVE_TYPES.FLEXIBLE:
             return t.flexibleLeave(Math.round(calDays / 7));
-        case LEAVE_TYPES.LACTANCIA:
+        case LEAVE_TYPES.LACTANCIA: {
+            if (period.durationValue !== undefined && period.durationUnit !== undefined) {
+                return t.accumulatedLactancia(period.durationValue, period.durationUnit);
+            }
             return t.accumulatedLactancia(period.days ?? calDays, 'days');
+        }
         case LEAVE_TYPES.CUIDADO: {
             const totalWeeks = Math.round(calDays / 7);
             if (totalWeeks <= 0) return t.childcareLeave;
@@ -437,56 +448,10 @@ export function getPeriodKey(period: ComputedPeriod): string {
     return period.isExtra ? (period.extraId ?? period.type) : period.type;
 }
 
-/**
- * Recomputes the end date of a period given a new start date.
- * Lactancia uses working-day arithmetic; all other periods preserve calendar duration.
- */
-function recomputeEnd(newStartIso: string, period: ComputedPeriod): string {
-    const newStart = parseLocalDate(newStartIso);
-    if (period.type === LEAVE_TYPES.LACTANCIA && period.days !== null) {
-        return formatDateKey(addWorkingDays(newStart, period.days));
-    }
-    const calDuration = daysBetween(
-        parseLocalDate(period.startDate),
-        parseLocalDate(period.endDate),
-    );
-    return formatDateKey(addDays(newStart, calDuration));
-}
-
-/**
- * Cascades periods forward from `fromIndex` to prevent overlaps.
- * If a period already starts after the previous one ends (gap), the gap is preserved.
- * The mandatory period (index 0) is never moved.
- */
-export function cascadeFrom(periods: ComputedPeriod[], fromIndex: number): ComputedPeriod[] {
-    if (fromIndex < 1 || periods.length < 2) return periods;
-    const result = periods.map((p) => ({ ...p }));
-    for (let i = Math.max(1, fromIndex); i < result.length; i++) {
-        const prevEnd = result[i - 1].endDate;
-        if (result[i].startDate < prevEnd) {
-            result[i] = {
-                ...result[i],
-                startDate: prevEnd,
-                endDate: recomputeEnd(prevEnd, result[i]),
-            };
-        }
-    }
-    return result;
-}
-
-/**
- * Re-cascades all given periods from `startCursor`, with no gaps between them.
- * Used after drag-reorder, matching the old behaviour of clearing customStartDates.
- */
-function tightCascade(periods: ComputedPeriod[], startCursor: string): ComputedPeriod[] {
-    let cursor = startCursor;
-    return periods.map((p) => {
-        const newEnd = recomputeEnd(cursor, p);
-        const result = { ...p, startDate: cursor, endDate: newEnd };
-        cursor = newEnd;
-        return result;
-    });
-}
+// ─── Cascade functions ────────────────────────────────────────────────────────
+// `recomputeEnd`, `cascadeFrom`, `tightCascadeAll`, and `cascadeAllFromEdit`
+// are now provided by `./periodChain.ts` — re-exported here for convenience.
+export { cascadeFrom, tightCascadeAll, cascadeAllFromEdit } from './periodChain';
 
 // ─── Date-first schedule: computeSchedule ─────────────────────────────────────
 
@@ -612,16 +577,18 @@ export function computeSchedule(data: WizardData): ComputedParentSchedule[] {
 
 /**
  * Changes the duration of a period and cascades all subsequent periods forward
- * if they would overlap.  Returns a new `ComputedParentSchedule[]`.
+ * if they would overlap — including cross-parent cascade in optimized mode.
+ * Returns a new `ComputedParentSchedule[]`.
  */
 export function resizePeriod(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
     periodKey: string,
     newValue: number,
-    unit: 'days' | 'weeks',
+    unit: EditUnit,
+    firstParent: number = 0,
 ): ComputedParentSchedule[] {
-    return schedule.map((parent, i) => {
+    const localEdit = schedule.map((parent, i) => {
         if (i !== parentIdx) return parent;
 
         const idx = parent.periods.findIndex((p) => getPeriodKey(p) === periodKey);
@@ -632,39 +599,56 @@ export function resizePeriod(
         let newEnd: Date;
 
         if (period.type === LEAVE_TYPES.LACTANCIA) {
-            const workDays = unit === 'weeks' ? Math.round(newValue * 5) : Math.round(newValue);
-            newEnd = addWorkingDays(start, workDays);
+            let workDays: number;
+            if (unit === 'months') {
+                const targetEnd = addMonths(start, newValue);
+                workDays = countWorkingDays(start, targetEnd);
+                newEnd = targetEnd;
+            } else {
+                workDays = unit === 'weeks' ? Math.round(newValue * 5) : Math.round(newValue);
+                newEnd = addWorkingDays(start, workDays);
+            }
             const updated: ComputedPeriod = {
                 ...period,
                 endDate: formatDateKey(newEnd),
                 days: workDays,
+                durationValue: newValue,
+                durationUnit: unit,
             };
             const newPeriods = [...parent.periods];
             newPeriods[idx] = updated;
-            return { ...parent, periods: cascadeFrom(newPeriods, idx + 1) };
+            return { ...parent, periods: newPeriods };
         }
 
-        const totalDays = unit === 'weeks' ? newValue * 7 : newValue;
-        newEnd = addDays(start, totalDays);
+        const totalDays = unit === 'months' ? newValue * 30 : (unit === 'weeks' ? newValue * 7 : newValue);
+        newEnd = unit === 'months' ? addMonths(start, newValue) : addDays(start, totalDays);
 
-        const updated: ComputedPeriod = { ...period, endDate: formatDateKey(newEnd) };
+        const updated: ComputedPeriod = {
+            ...period,
+            endDate: formatDateKey(newEnd),
+            durationValue: newValue,
+            durationUnit: unit,
+        };
         const newPeriods = [...parent.periods];
         newPeriods[idx] = updated;
-        return { ...parent, periods: cascadeFrom(newPeriods, idx + 1) };
+        return { ...parent, periods: newPeriods };
     });
+    return cascadeAllFromEdit(localEdit, parentIdx, firstParent, false);
 }
 
 /**
  * Moves the start date of a period (clamped to the previous period's end) and
- * cascades all subsequent periods.  Returns a new `ComputedParentSchedule[]`.
+ * cascades all subsequent periods — including cross-parent cascade.
+ * Returns a new `ComputedParentSchedule[]`.
  */
 export function shiftPeriodStart(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
     periodKey: string,
     newStartIso: string,
+    firstParent: number = 0,
 ): ComputedParentSchedule[] {
-    return schedule.map((parent, i) => {
+    const localEdit = schedule.map((parent, i) => {
         if (i !== parentIdx) return parent;
 
         const idx = parent.periods.findIndex((p) => getPeriodKey(p) === periodKey);
@@ -681,21 +665,23 @@ export function shiftPeriodStart(
         };
         const newPeriods = [...parent.periods];
         newPeriods[idx] = updated;
-        return { ...parent, periods: cascadeFrom(newPeriods, idx + 1) };
+        return { ...parent, periods: newPeriods };
     });
+    return cascadeAllFromEdit(localEdit, parentIdx, firstParent, false);
 }
 
 /**
  * Swaps two non-mandatory periods in order and re-cascades from the mandatory
- * period's end with no gaps (mirrors old behaviour of clearing customStartDates).
+ * period's end with no gaps — including cross-parent cascade.
  */
 export function reorderPeriods(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
     fromKey: string,
     toKey: string,
+    firstParent: number = 0,
 ): ComputedParentSchedule[] {
-    return schedule.map((parent, i) => {
+    const localEdit = schedule.map((parent, i) => {
         if (i !== parentIdx) return parent;
 
         const mandatory = parent.periods.find((p) => p.type === LEAVE_TYPES.MANDATORY);
@@ -713,25 +699,28 @@ export function reorderPeriods(
             ? mandatory.endDate
             : (parent.periods[0]?.startDate ?? reordered[0]?.startDate ?? '');
 
-        const cascaded = tightCascade(reordered, startCursor);
+        const cascaded = tightCascadeAll(reordered, startCursor);
 
         return {
             ...parent,
             periods: mandatory ? [mandatory, ...cascaded] : cascaded,
         };
     });
+    return cascadeAllFromEdit(localEdit, parentIdx, firstParent, true);
 }
 
 /**
  * Appends an extra leave item to a parent's period list.
  * The new period starts immediately after the last existing period.
+ * Cross-parent cascade is applied in optimized mode.
  */
 export function addExtraPeriod(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
     item: ExtraLeaveItem,
+    firstParent: number = 0,
 ): ComputedParentSchedule[] {
-    return schedule.map((parent, i) => {
+    const localEdit = schedule.map((parent, i) => {
         if (i !== parentIdx) return parent;
 
         const lastPeriod = parent.periods[parent.periods.length - 1];
@@ -755,24 +744,27 @@ export function addExtraPeriod(
 
         return { ...parent, periods: [...parent.periods, newPeriod] };
     });
+    return cascadeAllFromEdit(localEdit, parentIdx, firstParent, false);
 }
 
 /**
  * Removes an extra period by ID and cascades any subsequent periods to close
- * any overlap that results.
+ * any overlap — including cross-parent cascade in optimized mode.
  */
 export function removeExtraPeriod(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
     extraId: string,
+    firstParent: number = 0,
 ): ComputedParentSchedule[] {
-    return schedule.map((parent, i) => {
+    const localEdit = schedule.map((parent, i) => {
         if (i !== parentIdx) return parent;
 
         const idx = parent.periods.findIndex((p) => p.isExtra && p.extraId === extraId);
         if (idx < 0) return parent;
 
         const newPeriods = parent.periods.filter((_, j) => j !== idx);
-        return { ...parent, periods: cascadeFrom(newPeriods, idx) };
+        return { ...parent, periods: newPeriods };
     });
+    return cascadeAllFromEdit(localEdit, parentIdx, firstParent, false);
 }

@@ -18,9 +18,11 @@ import {
     addExtraPeriod,
     removeExtraPeriod,
     parseLocalDate,
+    cascadeAllFromEdit,
 } from '../calendarHelpers';
 import { compressWizardData, decompressWizardData } from '../shareUtils';
 import type {
+    ColorPaletteId,
     ComputedParentSchedule,
     ComputedPeriod,
     CustomDurations,
@@ -524,7 +526,7 @@ describe('computeSchedule', () => {
         dueDate: '2026-04-01',
         parentCount: 1 as const,
         names: ['Alice'],
-        colors: ['indigo'] as const,
+        colors: ['indigo' as ColorPaletteId],
         leaveMode: 'together' as const,
         firstParent: 0,
     };
@@ -571,7 +573,7 @@ describe('computeSchedule', () => {
             ...baseData,
             parentCount: 2 as const,
             names: ['Alice', 'Bob'],
-            colors: ['indigo', 'pink'] as const,
+            colors: ['indigo' as ColorPaletteId, 'pink' as ColorPaletteId],
             leaveMode: 'optimized' as const,
         };
         const result = computeSchedule(data);
@@ -585,7 +587,7 @@ describe('computeSchedule', () => {
             ...baseData,
             parentCount: 2 as const,
             names: ['Alice', 'Bob'],
-            colors: ['indigo', 'pink'] as const,
+            colors: ['indigo' as ColorPaletteId, 'pink' as ColorPaletteId],
             leaveMode: 'optimized' as const,
             firstParent: 0,
         };
@@ -819,7 +821,7 @@ describe('addExtraPeriod', () => {
         dueDate: '2026-04-01',
         parentCount: 1 as const,
         names: ['Alice'],
-        colors: ['indigo'] as const,
+        colors: ['indigo' as ColorPaletteId],
         leaveMode: 'together' as const,
         firstParent: 0,
     };
@@ -848,7 +850,7 @@ describe('removeExtraPeriod', () => {
         dueDate: '2026-04-01',
         parentCount: 1 as const,
         names: ['Alice'],
-        colors: ['indigo'] as const,
+        colors: ['indigo' as ColorPaletteId],
         leaveMode: 'together' as const,
         firstParent: 0,
     };
@@ -882,7 +884,7 @@ describe('share URL round-trip: optimized mode hidden first parent', () => {
             dueDate: '2026-04-01',
             parentCount: 2 as const,
             names: ['Alice', 'Bob'],
-            colors: ['indigo', 'pink'] as const,
+            colors: ['indigo' as ColorPaletteId, 'pink' as ColorPaletteId],
             leaveMode: 'optimized' as const,
             firstParent: 0,
         };
@@ -913,6 +915,165 @@ describe('share URL round-trip: optimized mode hidden first parent', () => {
         for (let i = 0; i < Math.min(originalNonMandatory.length, sharedNonMandatory.length); i++) {
             expect(sharedNonMandatory[i].startDate).toBe(originalNonMandatory[i].startDate);
             expect(sharedNonMandatory[i].endDate).toBe(originalNonMandatory[i].endDate);
+        }
+    });
+});
+
+// ─── cascadeAllFromEdit (cross-parent cascade) ──────────────────────────────
+
+describe('cascadeAllFromEdit (cross-parent cascade)', () => {
+    const optimizedBase = {
+        dueDate: '2026-04-01',
+        parentCount: 2 as const,
+        names: ['Alice', 'Bob'],
+        colors: ['indigo' as ColorPaletteId, 'pink' as ColorPaletteId],
+        leaveMode: 'optimized' as const,
+        firstParent: 0,
+    };
+
+    it('is a no-op for a single-parent schedule', () => {
+        const schedule = computeSchedule({
+            dueDate: '2026-04-01',
+            parentCount: 1 as const,
+            names: ['Alice'],
+            colors: ['indigo' as ColorPaletteId],
+            leaveMode: 'together' as const,
+            firstParent: 0,
+        });
+        const result = cascadeAllFromEdit(schedule, 0, 0, false);
+        // Single parent: periods should have the same dates
+        expect(result[0].periods[0].startDate).toBe(schedule[0].periods[0].startDate);
+    });
+
+    it('resizePeriod pushes bob forward when alice grows (integrated cascade)', () => {
+        const schedule = computeSchedule(optimizedBase);
+        // resizePeriod now handles cross-parent cascade internally
+        const result = resizePeriod(schedule, 0, 'flexible', 52, 'weeks', 0);
+
+        const aliceLastEnd = result[0].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const bobNonMandatory = result[1].periods.filter((p: ComputedPeriod) => p.type !== 'mandatory');
+
+        // Every non-mandatory period of bob must start at or after alice's last end
+        for (const p of bobNonMandatory) {
+            expect(p.startDate >= aliceLastEnd).toBe(true);
+        }
+    });
+
+    it('preserves duration of bob\'s periods when they are pushed forward', () => {
+        const schedule = computeSchedule(optimizedBase);
+        const result = resizePeriod(schedule, 0, 'flexible', 52, 'weeks', 0);
+
+        const bobBefore = schedule[1].periods.filter((p: ComputedPeriod) => p.type !== 'mandatory');
+        const bobAfter = result[1].periods.filter((p: ComputedPeriod) => p.type !== 'mandatory');
+
+        for (let i = 0; i < Math.min(bobBefore.length, bobAfter.length); i++) {
+            const daysBefore = daysBetween(
+                parseLocalDate(bobBefore[i].startDate),
+                parseLocalDate(bobBefore[i].endDate),
+            );
+            const daysAfter = daysBetween(
+                parseLocalDate(bobAfter[i].startDate),
+                parseLocalDate(bobAfter[i].endDate),
+            );
+            expect(daysAfter).toBe(daysBefore);
+        }
+    });
+
+    it('pulls bob back when alice\'s schedule shrinks', () => {
+        const schedule = computeSchedule(optimizedBase);
+        // First grow alice to push bob out
+        const grownSchedule = resizePeriod(schedule, 0, 'flexible', 30, 'weeks', 0);
+        // Now shrink alice back to a minimal amount
+        const shrunkSchedule = resizePeriod(grownSchedule, 0, 'flexible', 1, 'weeks', 0);
+
+        const aliceLastEnd = shrunkSchedule[0].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const bobFirstNonMandatory = shrunkSchedule[1].periods
+            .filter((p: ComputedPeriod) => p.type !== 'mandatory')[0];
+
+        // Bob should have been pulled back — his first non-mandatory start should
+        // be at alice's last end (tight cascade)
+        if (bobFirstNonMandatory) {
+            expect(bobFirstNonMandatory.startDate).toBe(aliceLastEnd);
+        }
+    });
+
+    it('does not move bob\'s mandatory period (starts on due date by law)', () => {
+        const schedule = computeSchedule(optimizedBase);
+        const result = resizePeriod(schedule, 0, 'flexible', 52, 'weeks', 0);
+
+        const bobMandatoryBefore = schedule[1].periods.find((p: ComputedPeriod) => p.type === 'mandatory');
+        const bobMandatoryAfter = result[1].periods.find((p: ComputedPeriod) => p.type === 'mandatory');
+
+        if (bobMandatoryBefore && bobMandatoryAfter) {
+            expect(bobMandatoryAfter.startDate).toBe(bobMandatoryBefore.startDate);
+            expect(bobMandatoryAfter.endDate).toBe(bobMandatoryBefore.endDate);
+        }
+    });
+
+    it('works correctly when firstParent is 1 (bob goes first, alice goes second)', () => {
+        const schedule = computeSchedule({ ...optimizedBase, firstParent: 1 });
+        // Grow bob (index 1, firstParent) so it overlaps alice (index 0, secondIdx)
+        const result = resizePeriod(schedule, 1, 'flexible', 52, 'weeks', 1);
+
+        const bobLastEnd = result[1].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const aliceNonMandatory = result[0].periods.filter((p: ComputedPeriod) => p.type !== 'mandatory');
+
+        for (const p of aliceNonMandatory) {
+            expect(p.startDate >= bobLastEnd).toBe(true);
+        }
+    });
+
+    it('resizePeriod produces no overlaps between parents (round-trip)', () => {
+        const schedule = computeSchedule(optimizedBase);
+        const result = resizePeriod(schedule, 0, 'flexible', 30, 'weeks', 0);
+
+        const aliceLastEnd = result[0].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const bobFirstNonMandatoryStart = result[1].periods
+            .filter((p: ComputedPeriod) => p.type !== 'mandatory')[0]?.startDate;
+
+        if (bobFirstNonMandatoryStart) {
+            expect(bobFirstNonMandatoryStart >= aliceLastEnd).toBe(true);
+        }
+    });
+
+    it('addExtraPeriod on parent A cascades parent B forward', () => {
+        const schedule = computeSchedule(optimizedBase);
+        const item = { id: 'ep-test', name: 'Vacation', durationValue: 4, durationUnit: 'weeks' as const };
+        const result = addExtraPeriod(schedule, 0, item, 0);
+
+        const aliceLastEnd = result[0].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const bobNonMandatory = result[1].periods.filter((p: ComputedPeriod) => p.type !== 'mandatory');
+
+        for (const p of bobNonMandatory) {
+            expect(p.startDate >= aliceLastEnd).toBe(true);
+        }
+    });
+
+    it('removeExtraPeriod on parent A pulls parent B back', () => {
+        const schedule = computeSchedule(optimizedBase);
+        const item = { id: 'ep-test', name: 'Vacation', durationValue: 4, durationUnit: 'weeks' as const };
+        const withExtra = addExtraPeriod(schedule, 0, item, 0);
+        // Remove the extra period — bob should pull back
+        const result = removeExtraPeriod(withExtra, 0, 'ep-test', 0);
+
+        const aliceLastEnd = result[0].periods.reduce(
+            (max: string, p: ComputedPeriod) => (p.endDate > max ? p.endDate : max), '',
+        );
+        const bobFirstNonMandatory = result[1].periods
+            .filter((p: ComputedPeriod) => p.type !== 'mandatory')[0];
+
+        if (bobFirstNonMandatory) {
+            expect(bobFirstNonMandatory.startDate).toBe(aliceLastEnd);
         }
     });
 });
