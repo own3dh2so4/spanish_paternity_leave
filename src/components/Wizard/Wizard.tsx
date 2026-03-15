@@ -147,14 +147,14 @@ export default function Wizard({ onComplete, initialData }: Props) {
                         <button
                             className="btn-icon"
                             onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
-                            title={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a inglés'}
+                            title={t.tooltipSwitchLang}
                         >
                             {lang === 'en' ? '🇪🇸 ES' : '🇬🇧 EN'}
                         </button>
                         <button
                             className="btn-icon"
                             onClick={toggleTheme}
-                            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                            title={t.tooltipSwitchTheme(theme)}
                         >
                             {theme === 'dark' ? '☀️' : '🌙'}
                         </button>

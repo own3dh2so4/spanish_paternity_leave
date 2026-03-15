@@ -122,4 +122,33 @@ export const es: TranslationKeys = {
 
     // Datepicker locale
     datePickerLocale: 'es',
+
+    // Tooltips & A11y
+    tooltipChangeDueDate: 'Haz clic para cambiar la fecha de parto',
+    tooltipSwitchLang: 'Cambiar a inglés',
+    tooltipSwitchTheme: (theme: string) => `Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`,
+
+    // Units
+    unitDays: 'días',
+    unitWeeksShort: 'sem.',
+
+    // Presets
+    presetVacation: 'vacaciones',
+    presetUnpaid: 'baja no retribuida',
+    presetGradual: 'regreso gradual',
+    presetCustom: 'personalizado',
+
+    // Wizard hints
+    hintFirstParent: '🏠 Se queda en casa primero — toma la baja flexible tras la obligatoria',
+    hintSecondParent: '🏢 Vuelve al trabajo tras la obligatoria, toma la baja flexible más tarde',
+
+    // Cuidado
+    cuidadoPaidBadge: 'retribuido',
+    cuidadoUnpaidBadge: 'no retribuido',
+    yes: 'Sí',
+    no: 'No',
+    cuidadoWeekPaidTooltip: (w: number) => `Semana ${w} – retribuida`,
+    cuidadoWeekUnpaidTooltip: (w: number) => `Semana ${w} – no retribuida`,
+    cuidadoFullPaid: (w: number) => `${w} semana${w !== 1 ? 's' : ''} — totalmente retribuida`,
+    cuidadoPaidUnpaid: (p: number, u: number) => `${p} sem. retribuidas + ${u} semana${u !== 1 ? 's' : ''} no retribuida`,
 };

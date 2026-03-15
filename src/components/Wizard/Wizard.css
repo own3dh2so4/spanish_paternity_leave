@@ -58,13 +58,13 @@
 
 /* Top-right controls: language + theme toggle */
 .wizard-header-controls {
-  position: absolute;
-  top: 0;
-  right: 0;
   display: flex;
+  justify-content: flex-end;
   gap: 0.4rem;
   align-items: center;
+  margin-bottom: 0.5rem;
 }
+
 
 .btn-icon {
   background: var(--bg-input);

@@ -259,7 +259,6 @@ export default function SummaryCard({
                     <AddExtraForm
                         parentIndex={parentIndex}
                         parentSchedule={parent}
-                        lang={lang}
                         t={t}
                         newPresetKey={newPresetKey}
                         newCustomName={newCustomName}

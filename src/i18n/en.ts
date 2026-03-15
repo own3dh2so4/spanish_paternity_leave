@@ -117,6 +117,35 @@ export interface TranslationKeys {
 
     // Datepicker locale
     datePickerLocale: string;
+
+    // Tooltips & A11y
+    tooltipChangeDueDate: string;
+    tooltipSwitchLang: string;
+    tooltipSwitchTheme: (theme: string) => string;
+
+    // Units
+    unitDays: string;
+    unitWeeksShort: string;
+
+    // Presets
+    presetVacation: string;
+    presetUnpaid: string;
+    presetGradual: string;
+    presetCustom: string;
+
+    // Wizard hints
+    hintFirstParent: string;
+    hintSecondParent: string;
+
+    // Cuidado
+    cuidadoPaidBadge: string;
+    cuidadoUnpaidBadge: string;
+    yes: string;
+    no: string;
+    cuidadoWeekPaidTooltip: (w: number) => string;
+    cuidadoWeekUnpaidTooltip: (w: number) => string;
+    cuidadoFullPaid: (w: number) => string;
+    cuidadoPaidUnpaid: (p: number, u: number) => string;
 }
 
 export const en: TranslationKeys = {
@@ -241,4 +270,33 @@ export const en: TranslationKeys = {
 
     // Datepicker locale
     datePickerLocale: 'en-GB',
+
+    // Tooltips & A11y
+    tooltipChangeDueDate: 'Click to change due date',
+    tooltipSwitchLang: 'Switch to Spanish',
+    tooltipSwitchTheme: (theme: string) => `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
+
+    // Units
+    unitDays: 'days',
+    unitWeeksShort: 'weeks',
+
+    // Presets
+    presetVacation: 'vacation',
+    presetUnpaid: 'unpaid leave',
+    presetGradual: 'gradual return',
+    presetCustom: 'custom',
+
+    // Wizard hints
+    hintFirstParent: '🏠 Stays home first — takes flexible leave right after mandatory',
+    hintSecondParent: '🏢 Returns to work after mandatory, takes flexible leave later',
+
+    // Cuidado
+    cuidadoPaidBadge: 'paid',
+    cuidadoUnpaidBadge: 'unpaid',
+    yes: 'Yes',
+    no: 'No',
+    cuidadoWeekPaidTooltip: (w: number) => `Week ${w} – paid`,
+    cuidadoWeekUnpaidTooltip: (w: number) => `Week ${w} – unpaid`,
+    cuidadoFullPaid: (w: number) => `${w} week${w !== 1 ? 's' : ''} — fully paid`,
+    cuidadoPaidUnpaid: (p: number, u: number) => `${p} weeks paid + ${u} week${u !== 1 ? 's' : ''} unpaid`,
 };

@@ -8,7 +8,6 @@ import type { TranslationKeys } from '../../i18n/en';
 interface Props {
     parentIndex: number;
     parentSchedule: ComputedParentSchedule;
-    lang: string;
     t: TranslationKeys;
     // Form state
     newPresetKey: string;
@@ -26,7 +25,6 @@ interface Props {
 export default function AddExtraForm({
     parentIndex,
     parentSchedule,
-    lang,
     t,
     newPresetKey,
     newCustomName,
@@ -52,7 +50,11 @@ export default function AddExtraForm({
             >
                 {EXTRA_PRESETS.map((p) => (
                     <option key={p.key} value={p.key}>
-                        {p.label}
+                        {p.key === 'vacation' ? '🏖️ ' : ''}
+                        {p.key === 'unpaid' ? '📋 ' : ''}
+                        {p.key === 'gradual' ? '🔄 ' : ''}
+                        {p.key === 'custom' ? '✏️ ' : ''}
+                        {t[p.labelKey] as string}
                     </option>
                 ))}
                 {remaining > 0 && (
@@ -105,9 +107,9 @@ export default function AddExtraForm({
                     }
                 >
                     {!isFlexExtra && (
-                        <option value="days">{lang === 'es' ? 'días' : 'days'}</option>
+                        <option value="days">{t.unitDays}</option>
                     )}
-                    <option value="weeks">{lang === 'es' ? 'sem.' : 'weeks'}</option>
+                    <option value="weeks">{t.unitWeeksShort}</option>
                 </select>
                 <button
                     className="add-extra-confirm"

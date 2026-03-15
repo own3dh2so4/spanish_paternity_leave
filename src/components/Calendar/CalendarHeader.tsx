@@ -47,7 +47,7 @@ export default function CalendarHeader({
                         customInput={
                             <strong
                                 className="header-due-date"
-                                title="Click to change due date"
+                                title={t.tooltipChangeDueDate}
                             >
                                 {formatDisplayDate(new Date(data.dueDate))}
                             </strong>
@@ -88,16 +88,14 @@ export default function CalendarHeader({
                     className="btn-icon btn btn-secondary"
                     style={{ fontSize: '0.78rem', fontWeight: 700 }}
                     onClick={onToggleLang}
-                    title={lang === 'en' ? 'Switch to Spanish' : 'Cambiar a inglés'}
+                    title={t.tooltipSwitchLang}
                 >
                     {lang === 'en' ? '🇪🇸 ES' : '🇬🇧 EN'}
                 </button>
                 <button
                     className="btn btn-secondary"
                     onClick={onToggleTheme}
-                    title={
-                        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-                    }
+                    title={t.tooltipSwitchTheme(theme)}
                 >
                     {theme === 'dark' ? '☀️' : '🌙'}
                 </button>

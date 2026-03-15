@@ -24,8 +24,8 @@ export default function StepFirstParent({ value, onChange, parentNames, colors }
 
                     const isFirst = value === index;
                     const hint = isFirst
-                        ? '🏠 Stays home first — takes flexible leave right after mandatory'
-                        : '🏢 Returns to work after mandatory, takes flexible leave later';
+                        ? t.hintFirstParent
+                        : t.hintSecondParent;
 
                     return (
                         <button

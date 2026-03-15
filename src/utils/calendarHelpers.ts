@@ -49,14 +49,14 @@ export const DEFAULT_DURATIONS: Record<LeaveType, number> = {
 
 export const EXTRA_PRESETS: Array<{
     key: string;
-    label: string;
+    labelKey: keyof TranslationKeys;
     defaultValue: number;
     defaultUnit: 'days' | 'weeks';
 }> = [
-    { key: 'vacation', label: '🏖️ Vacation', defaultValue: 2, defaultUnit: 'weeks' },
-    { key: 'unpaid', label: '📋 Unpaid leave', defaultValue: 5, defaultUnit: 'days' },
-    { key: 'gradual', label: '🔄 Gradual return', defaultValue: 4, defaultUnit: 'weeks' },
-    { key: 'custom', label: '✏️ Custom', defaultValue: 1, defaultUnit: 'weeks' },
+    { key: 'vacation', labelKey: 'presetVacation', defaultValue: 2, defaultUnit: 'weeks' },
+    { key: 'unpaid', labelKey: 'presetUnpaid', defaultValue: 5, defaultUnit: 'days' },
+    { key: 'gradual', labelKey: 'presetGradual', defaultValue: 4, defaultUnit: 'weeks' },
+    { key: 'custom', labelKey: 'presetCustom', defaultValue: 1, defaultUnit: 'weeks' },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────

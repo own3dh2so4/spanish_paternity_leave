@@ -33,12 +33,12 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
 
             <div className="cuidado-info-box">
                 <div className="cuidado-info-row">
-                    <span className="cuidado-paid-badge">{CUIDADO_PAID_WEEKS}w paid</span>
+                    <span className="cuidado-paid-badge">{CUIDADO_PAID_WEEKS}w {t.cuidadoPaidBadge}</span>
                     <span>{t.cuidadoWeeksHint(CUIDADO_PAID_WEEKS)}</span>
                 </div>
                 <div className="cuidado-info-row">
                     <span className="cuidado-unpaid-badge">
-                        +{CUIDADO_TOTAL_WEEKS - CUIDADO_PAID_WEEKS}w unpaid
+                        +{CUIDADO_TOTAL_WEEKS - CUIDADO_PAID_WEEKS}w {t.cuidadoUnpaidBadge}
                     </span>
                     <span>{t.cuidadoMax(CUIDADO_TOTAL_WEEKS)}</span>
                 </div>
@@ -65,7 +65,7 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
                                     className={`cuidado-toggle ${isActive ? 'on' : 'off'}`}
                                     onClick={() => handleToggle(i, !isActive)}
                                 >
-                                    {isActive ? 'Yes' : 'No'}
+                                    {isActive ? t.yes : t.no}
                                 </button>
                             </div>
 
@@ -82,8 +82,8 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
                                                     onClick={() => handleWeeks(i, w)}
                                                     title={
                                                         w <= CUIDADO_PAID_WEEKS
-                                                            ? `Week ${w} – paid`
-                                                            : `Week ${w} – unpaid`
+                                                            ? t.cuidadoWeekPaidTooltip(w)
+                                                            : t.cuidadoWeekUnpaidTooltip(w)
                                                     }
                                                 >
                                                     {w}
@@ -93,8 +93,8 @@ export default function StepCuidado({ parentCount, names, colors, values, onChan
                                     </div>
                                     <p className="cuidado-breakdown">
                                         {weeks <= CUIDADO_PAID_WEEKS
-                                            ? `${weeks} week${weeks !== 1 ? 's' : ''} — fully paid`
-                                            : `${CUIDADO_PAID_WEEKS} weeks paid + ${weeks - CUIDADO_PAID_WEEKS} week${weeks - CUIDADO_PAID_WEEKS !== 1 ? 's' : ''} unpaid`}
+                                            ? t.cuidadoFullPaid(weeks)
+                                            : t.cuidadoPaidUnpaid(CUIDADO_PAID_WEEKS, weeks - CUIDADO_PAID_WEEKS)}
                                     </p>
                                 </div>
                             )}

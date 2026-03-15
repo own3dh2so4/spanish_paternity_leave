@@ -23,6 +23,13 @@ export default function StepNames({ parentCount, names, onChangeNames, colors, o
 
     const handleColorChange = (index: number, colorId: ColorPaletteId) => {
         const updated = [...colors];
+        const existingIndex = updated.findIndex((c, i) => c === colorId && i !== index);
+        
+        if (existingIndex !== -1) {
+            // Swap colors between the two parents
+            updated[existingIndex] = updated[index];
+        }
+        
         updated[index] = colorId;
         onChangeColors(updated);
     };
