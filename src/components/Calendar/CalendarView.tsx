@@ -58,6 +58,8 @@ export default function CalendarView({
         initialHidden || new Set(),
     );
 
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+
     // ── Hooks ─────────────────────────────────────────────────────────────────
 
     const periodEdit = usePeriodEdit();
@@ -158,11 +160,13 @@ export default function CalendarView({
             const url = new URL(window.location.href);
             url.searchParams.set('share', compressed);
             await navigator.clipboard.writeText(url.toString());
-            alert(t.shareSuccess);
+            setToastMessage('✅ ' + t.shareSuccess);
         } catch (e) {
             console.error('Failed to share', e);
-            alert(t.shareError);
+            setToastMessage('❌ ' + t.shareError);
         }
+        
+        setTimeout(() => setToastMessage(null), 3000);
     };
 
     const handleDueDateChange = (date: Date | null) => {
@@ -334,6 +338,12 @@ export default function CalendarView({
                     />
                 ))}
             </div>
+
+            {toastMessage && (
+                <div className="toast-message">
+                    {toastMessage}
+                </div>
+            )}
         </div>
     );
 }
