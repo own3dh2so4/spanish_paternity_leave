@@ -1,111 +1,138 @@
 import { useState } from 'react';
-import { LEAVE_TYPES, MANDATORY_WEEKS, FLEXIBLE_WEEKS, CUIDADO_PAID_WEEKS } from '../../constants';
+import { LEAVE_TYPES } from '../../constants';
 import type { ColorPalette, DateMapEntry } from '../../types';
+import type { TranslationKeys } from '../../i18n/en';
+import type { Language } from '../../i18n/LanguageContext';
 
 interface Props {
     day: Date | null;
     dateKey?: string;
     entries?: DateMapEntry[] | null;
     isToday?: boolean;
-    birthDateKey?: string;
+    isBirthDay?: boolean;
+    column?: number;
     parentColors?: ColorPalette[];
+    lang: Language;
+    t: TranslationKeys;
 }
 
-export default function DayCell({ day, dateKey, entries, isToday, birthDateKey, parentColors }: Props) {
-    const [showTooltip, setShowTooltip] = useState(false);
+const LOCALES: Record<Language, string> = { en: 'en-GB', es: 'es-ES' };
 
-    if (!day) {
-        return <div className="day-cell empty" />;
-    }
+export default function DayCell({
+    day,
+    dateKey,
+    entries,
+    isToday,
+    isBirthDay,
+    column = 0,
+    parentColors,
+    lang,
+    t,
+}: Props) {
+    const [pinned, setPinned] = useState(false);
+    if (!day) return <div className="day-cell empty" aria-hidden="true" />;
 
     const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-    const isBirthDay = dateKey === birthDateKey;
+    const shown = (entries ?? []).slice(0, 2);
+    const hasEntries = shown.length > 0 && !!parentColors;
 
-    let backgroundColor = 'transparent';
-    let textColor = isWeekend ? 'var(--text-muted)' : 'var(--text-secondary)';
-
-    if (entries && entries.length > 0 && parentColors) {
-        if (entries.length > 1) {
-            const c1 = parentColors[entries[0].parentIndex];
-            const c2 = parentColors[entries[1].parentIndex];
-            backgroundColor = `linear-gradient(135deg, ${c1[entries[0].type]} 50%, ${c2[entries[1].type]} 50%)`;
+    const style: React.CSSProperties = {};
+    let textColor: string | undefined;
+    if (hasEntries && parentColors) {
+        if (shown.length > 1) {
+            const c1 = parentColors[shown[0].parentIndex][shown[0].type];
+            const c2 = parentColors[shown[1].parentIndex][shown[1].type];
+            style.background = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
             textColor = 'white';
         } else {
-            const entry = entries[0];
-            const colors = parentColors[entry.parentIndex];
-            backgroundColor = colors[entry.type];
-            textColor = entry.type === LEAVE_TYPES.LACTANCIA ? 'var(--text-primary)' : 'white';
+            style.backgroundColor = parentColors[shown[0].parentIndex][shown[0].type];
+            textColor = shown[0].type === LEAVE_TYPES.LACTANCIA ? 'var(--text-primary)' : 'white';
         }
     }
 
-    const style: React.CSSProperties = {};
-    if (backgroundColor.startsWith('linear')) {
-        style.background = backgroundColor;
-    } else {
-        style.backgroundColor = backgroundColor;
-    }
-
-    const hasEntries = Boolean(entries && entries.length > 0);
-
-    const dateLabel = day.toLocaleDateString('en-GB', {
+    const dateLabel = day.toLocaleDateString(LOCALES[lang], {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
     });
+    const description = [
+        isBirthDay ? t.birthDate : null,
+        isToday ? t.today : null,
+        ...shown.map((e) => `${e.parentName}: ${e.label}`),
+    ]
+        .filter(Boolean)
+        .join('. ');
+
+    const tooltipSide = column >= 4 ? 'day-tooltip--right' : column <= 1 ? 'day-tooltip--left' : '';
+    const interactive = hasEntries || isBirthDay;
+    const className = [
+        'day-cell',
+        isWeekend ? 'weekend' : '',
+        isToday ? 'today' : '',
+        isBirthDay ? 'birthday' : '',
+        hasEntries ? 'has-leave' : '',
+        pinned ? 'tooltip-pinned' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    if (!interactive) {
+        return (
+            <div className={className} style={style} aria-label={dateLabel} data-date={dateKey}>
+                <span className="day-number">{day.getDate()}</span>
+            </div>
+        );
+    }
 
     return (
-        <div
-            className={`day-cell ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} ${isBirthDay ? 'birthday' : ''} ${hasEntries ? 'has-leave' : ''}`}
+        <button
+            type="button"
+            className={className}
             style={style}
-            onMouseEnter={() => hasEntries && setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
+            aria-label={`${dateLabel}. ${description}`}
+            aria-pressed={pinned}
+            onClick={() => setPinned((v) => !v)}
+            onBlur={() => setPinned(false)}
+            data-date={dateKey}
         >
             <span className="day-number" style={{ color: hasEntries ? textColor : undefined }}>
                 {day.getDate()}
             </span>
-            {isBirthDay && <span className="birth-marker">👶</span>}
-
-            {showTooltip && hasEntries && entries && parentColors && (
-                <div className="day-tooltip">
-                    <div className="tooltip-header">{dateLabel}</div>
-                    {isBirthDay && <div className="tooltip-birth">👶 Birth Date</div>}
-                    <div className="tooltip-entries">
-                        {entries.map((entry, idx) => (
-                            <div key={idx} className="tooltip-entry">
-                                <div
-                                    className="tooltip-color-bar"
-                                    style={{
-                                        backgroundColor: parentColors[entry.parentIndex][entry.type],
-                                    }}
-                                />
-                                <div className="tooltip-entry-content">
-                                    <span className="tooltip-name">{entry.parentName}</span>
-                                    <span className="tooltip-type">{formatType(entry)}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            {isBirthDay && (
+                <span className="birth-marker" aria-hidden="true">
+                    👶
+                </span>
             )}
-        </div>
-    );
-}
 
-function formatType(entry: DateMapEntry): string {
-    if (entry.type === LEAVE_TYPES.EXTRA) {
-        return entry.customName ?? 'Extra period';
-    }
-    switch (entry.type) {
-        case LEAVE_TYPES.MANDATORY:
-            return `Mandatory Leave (${MANDATORY_WEEKS} weeks)`;
-        case LEAVE_TYPES.FLEXIBLE:
-            return `Flexible Leave (${FLEXIBLE_WEEKS} weeks)`;
-        case LEAVE_TYPES.LACTANCIA:
-            return 'Accumulated Lactancia';
-        case LEAVE_TYPES.CUIDADO:
-            return `Childcare Leave (2 paid + ${(CUIDADO_PAID_WEEKS ?? 2) > 0 ? '' : ''}unpaid)`;
-        default:
-            return entry.type;
-    }
+            {
+                <div className={`day-tooltip ${tooltipSide}`} aria-hidden="true">
+                    <div className="tooltip-header">{dateLabel}</div>
+                    {isBirthDay && <div className="tooltip-birth">👶 {t.birthDate}</div>}
+                    {hasEntries && parentColors && (
+                        <div className="tooltip-entries">
+                            {shown.map((entry) => (
+                                <div
+                                    key={`${entry.parentIndex}-${entry.type}`}
+                                    className="tooltip-entry"
+                                >
+                                    <div
+                                        className="tooltip-color-bar"
+                                        style={{
+                                            backgroundColor:
+                                                parentColors[entry.parentIndex][entry.type],
+                                        }}
+                                    />
+                                    <div className="tooltip-entry-content">
+                                        <span className="tooltip-name">{entry.parentName}</span>
+                                        <span className="tooltip-type">{entry.label}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            }
+        </button>
+    );
 }

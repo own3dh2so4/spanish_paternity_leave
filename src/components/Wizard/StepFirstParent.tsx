@@ -1,4 +1,4 @@
-import { COLOR_PALETTES } from '../../constants';
+import { paletteFor } from '../../constants';
 import type { ColorPaletteId } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -16,33 +16,32 @@ export default function StepFirstParent({ value, onChange, parentNames, colors }
             <div className="step-icon">🏁</div>
             <h2>{t.firstParentTitle}</h2>
             <p className="step-description">{t.firstParentDescription}</p>
-            <div className="toggle-group">
+            <div className="toggle-group" role="radiogroup" aria-label={t.firstParentTitle}>
                 {parentNames.map((name, index) => {
-                    const activeColor = colors?.[index]
-                        ? COLOR_PALETTES[colors[index]]
-                        : Object.values(COLOR_PALETTES)[index % 5];
-
+                    const palette = paletteFor(colors[index], index);
                     const isFirst = value === index;
-                    const hint = isFirst
-                        ? t.hintFirstParent
-                        : t.hintSecondParent;
-
                     return (
                         <button
                             key={index}
                             type="button"
+                            role="radio"
+                            aria-checked={isFirst}
                             className={`toggle-btn ${isFirst ? 'active' : ''}`}
                             onClick={() => onChange(index)}
-                            style={isFirst ? { borderColor: activeColor.accent } : {}}
+                            style={isFirst ? { borderColor: palette.accent } : {}}
+                            data-testid={`first-parent-btn-${index}`}
                         >
                             <div
                                 className="toggle-avatar"
-                                style={{ background: activeColor.gradient }}
+                                style={{ background: palette.gradient }}
+                                aria-hidden="true"
                             >
-                                {name.charAt(0).toUpperCase()}
+                                {(name || '?').charAt(0).toUpperCase()}
                             </div>
                             <span className="toggle-label">{name}</span>
-                            <span className="toggle-hint">{hint}</span>
+                            <span className="toggle-hint">
+                                {isFirst ? t.hintFirstParent : t.hintSecondParent}
+                            </span>
                         </button>
                     );
                 })}

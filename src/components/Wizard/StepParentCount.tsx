@@ -1,8 +1,14 @@
 import { useLanguage } from '../../i18n/LanguageContext';
+import { getLeaveAllowance } from '../../utils/leaveLaw';
 
 interface Props {
     value: number;
     onChange: (count: 1 | 2) => void;
+}
+
+function totalWeeks(parentCount: 1 | 2): number {
+    const a = getLeaveAllowance({ parentCount, babies: 1, disability: false });
+    return a.mandatoryWeeks + a.flexibleWeeks + a.extraUntil8Weeks;
 }
 
 export default function StepParentCount({ value, onChange }: Props) {
@@ -11,22 +17,34 @@ export default function StepParentCount({ value, onChange }: Props) {
         <div className="wizard-step fade-in">
             <div className="step-icon">👨‍👩‍👧</div>
             <h2>{t.parentCountTitle}</h2>
-            <div className="toggle-group">
+            <div className="toggle-group" role="radiogroup" aria-label={t.parentCountTitle}>
                 <button
                     type="button"
-                    className={`toggle-btn ${value === 1 ? 'active' : ''}`}
-                    onClick={() => onChange(1)}
+                    role="radio"
+                    aria-checked={value === 2}
+                    className={`toggle-btn ${value === 2 ? 'active' : ''}`}
+                    onClick={() => onChange(2)}
+                    data-testid="parent-count-btn-2"
                 >
-                    <span className="toggle-icon">👤</span>
-                    <span className="toggle-label">{t.parentCountOne}</span>
+                    <span className="toggle-icon" aria-hidden="true">
+                        👥
+                    </span>
+                    <span className="toggle-label">{t.parentCountTwo}</span>
+                    <span className="toggle-hint">{t.parentCountTwoDesc(totalWeeks(2))}</span>
                 </button>
                 <button
                     type="button"
-                    className={`toggle-btn ${value === 2 ? 'active' : ''}`}
-                    onClick={() => onChange(2)}
+                    role="radio"
+                    aria-checked={value === 1}
+                    className={`toggle-btn ${value === 1 ? 'active' : ''}`}
+                    onClick={() => onChange(1)}
+                    data-testid="parent-count-btn-1"
                 >
-                    <span className="toggle-icon">👥</span>
-                    <span className="toggle-label">{t.parentCountTwo}</span>
+                    <span className="toggle-icon" aria-hidden="true">
+                        👤
+                    </span>
+                    <span className="toggle-label">{t.parentCountSingle}</span>
+                    <span className="toggle-hint">{t.parentCountSingleDesc(totalWeeks(1))}</span>
                 </button>
             </div>
         </div>

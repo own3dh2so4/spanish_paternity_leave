@@ -1,209 +1,180 @@
-import React from 'react';
 import DatePicker from 'react-datepicker';
 import { LEAVE_TYPES } from '../../constants';
-import type { ColorPalette, ComputedPeriod, EditUnit } from '../../types';
-import { formatLeaveType, parseLocalDate, getPeriodKey } from '../../utils/calendarHelpers';
-import { formatDisplayDate } from '../../utils/leaveCalculator';
+import type { ColorPalette, ComputedParentSchedule, ComputedPeriod, EditUnit } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
-import type { usePeriodEdit } from '../../hooks/usePeriodEdit';
-import type { useDragSort } from '../../hooks/useDragSort';
-import type { useStartDateEdit } from '../../hooks/useStartDateEdit';
+import type { Language } from '../../i18n/LanguageContext';
+import type { ScheduleEditor } from '../../hooks/useScheduleEditor';
+import { formatLeaveType, getPeriodKey } from '../../utils/calendarHelpers';
+import { formatDisplayDate, parseLocalDate } from '../../utils/dates';
+import { getMaxWeeksFor, getPeriodWarning } from '../../utils/leaveLaw';
 
 interface Props {
     period: ComputedPeriod;
+    parent: ComputedParentSchedule;
     parentIndex: number;
     activeColor: ColorPalette;
-    lang: string;
+    dueDate: string;
+    lang: Language;
     t: TranslationKeys;
-    allPeriods: ComputedPeriod[];
-    // Period edit (duration)
-    editingPeriod: ReturnType<typeof usePeriodEdit>['editingPeriod'];
-    editValue: string;
-    editUnit: EditUnit;
-    inputRef: React.RefObject<HTMLInputElement | null>;
-    onStartEditing: (parentIndex: number, period: ComputedPeriod) => void;
-    onCommitEdit: () => void;
-    onCancelEdit: () => void;
-    onEditValueChange: (v: string) => void;
-    onEditUnitChange: (u: EditUnit) => void;
-    // Start-date edit
-    editingStartDate: ReturnType<typeof useStartDateEdit>['editingStartDate'];
-    editStartDateValue: Date | null;
-    minEditStartDate: Date | null;
-    onOpenStartDateEdit: (
-        parentIndex: number,
-        periodKey: string,
-        currentDate: Date,
-    ) => void;
-    onCommitStartDate: (date: Date) => void;
-    onCancelEditDate: () => void;
-    // Drag
-    draggingKey: ReturnType<typeof useDragSort>['draggingKey'];
-    dragOverKey: ReturnType<typeof useDragSort>['dragOverKey'];
-    onDragStart: (parentIndex: number, key: string) => void;
-    onDragOver: (e: React.DragEvent, parentIndex: number, key: string) => void;
-    onDrop: (e: React.DragEvent, parentIndex: number, targetKey: string) => void;
-    onDragEnd: () => void;
+    editor: ScheduleEditor;
+    canMoveEarlier: boolean;
+    canMoveLater: boolean;
+    minStartDate: Date;
 }
 
 export default function PeriodRow({
     period,
+    parent,
     parentIndex,
     activeColor,
+    dueDate,
     lang,
     t,
-    editingPeriod,
-    editValue,
-    editUnit,
-    inputRef,
-    onStartEditing,
-    onCommitEdit,
-    onCancelEdit,
-    onEditValueChange,
-    onEditUnitChange,
-    editingStartDate,
-    editStartDateValue,
-    minEditStartDate,
-    onOpenStartDateEdit,
-    onCommitStartDate,
-    onCancelEditDate,
-    draggingKey,
-    dragOverKey,
-    onDragStart,
-    onDragOver,
-    onDrop,
-    onDragEnd,
+    editor,
+    canMoveEarlier,
+    canMoveLater,
+    minStartDate,
 }: Props) {
     const periodKey = getPeriodKey(period);
-    const periodType = period.type;
-    const isLactancia = periodType === LEAVE_TYPES.LACTANCIA;
+    const isLactancia = period.type === LEAVE_TYPES.LACTANCIA;
+    const isNaturalLactancia = isLactancia && period.days === null;
+    const isExtra = period.isExtra === true;
+    const canEditDuration = !isExtra;
 
     const isEditing =
-        editingPeriod?.parentIndex === parentIndex &&
-        editingPeriod?.periodKey === periodKey;
-    const isEditingThisDate =
-        editingStartDate?.parentIndex === parentIndex &&
-        editingStartDate?.periodKey === periodKey;
-    const isEditingEither = isEditing || isEditingThisDate;
+        editor.editingPeriod?.parentIndex === parentIndex &&
+        editor.editingPeriod.periodKey === periodKey;
+    const isEditingDate =
+        editor.editingStartDate?.parentIndex === parentIndex &&
+        editor.editingStartDate.periodKey === periodKey;
+    const isBusy = isEditing || isEditingDate;
 
-    const isDraggingThis =
-        draggingKey?.parentIndex === parentIndex && draggingKey?.key === periodKey;
-    const isDragOverThis =
-        dragOverKey?.parentIndex === parentIndex &&
-        dragOverKey?.key === periodKey &&
-        draggingKey?.key !== periodKey;
+    const isDragging =
+        editor.draggingKey?.parentIndex === parentIndex &&
+        editor.draggingKey.periodKey === periodKey;
+    const isDragOver =
+        editor.dragOverKey?.parentIndex === parentIndex &&
+        editor.dragOverKey.periodKey === periodKey &&
+        !isDragging;
+
+    const warning = getPeriodWarning(period, dueDate);
+    const warningText =
+        warning === 'afterFirstBirthday'
+            ? t.warnAfterFirstBirthday
+            : warning === 'afterEighthBirthday'
+              ? t.warnAfterEighthBirthday
+              : null;
+    const maxWeeks = getMaxWeeksFor(parent, period);
+    const label = formatLeaveType(period, t);
+
+    const unitLabel = (u: EditUnit) =>
+        u === 'days' ? t.unitDays : u === 'weeks' ? t.unitWeeksShort : t.unitMonths;
 
     return (
         <div
             className={[
                 'summary-period period-row-editable',
-                isDraggingThis ? 'period-dragging' : '',
-                isDragOverThis ? 'period-dragover' : '',
+                isExtra ? 'extra-period-row' : '',
+                isDragging ? 'period-dragging' : '',
+                isDragOver ? 'period-dragover' : '',
             ]
                 .filter(Boolean)
                 .join(' ')}
-            onDragOver={(e) => onDragOver(e, parentIndex, periodKey)}
-            onDrop={(e) => onDrop(e, parentIndex, periodKey)}
-            onClick={() => {
-                if (!isEditing && !draggingKey) {
-                    onStartEditing(parentIndex, period);
-                }
-            }}
+            data-testid={`period-row-${isExtra ? period.extraPresetKey : period.type}`}
+            onDragOver={(e) => editor.onDragOver(e, parentIndex, periodKey)}
+            onDrop={(e) => editor.onDrop(e, parentIndex, periodKey)}
         >
             <div
-                className={`period-drag-handle ${isEditingEither ? 'period-drag-handle--hidden' : ''}`}
-                draggable={!isEditingEither ? true : undefined}
-                onDragStart={
-                    !isEditingEither
-                        ? (e) => {
-                              e.dataTransfer.effectAllowed = 'move';
-                              onDragStart(parentIndex, periodKey);
-                          }
-                        : undefined
-                }
-                onDragEnd={!isEditingEither ? onDragEnd : undefined}
-                onClick={(e) => e.stopPropagation()}
-                title={!isEditingEither ? t.dragToReorder : undefined}
+                className={`period-drag-handle ${isBusy ? 'period-drag-handle--hidden' : ''}`}
+                data-testid={`drag-handle-${isExtra ? period.extraPresetKey : period.type}`}
+                draggable={!isBusy || undefined}
+                onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', periodKey);
+                    editor.onDragStart(parentIndex, periodKey);
+                }}
+                onDragEnd={editor.onDragEnd}
+                title={t.dragToReorder}
+                aria-hidden="true"
             >
                 ⠿
             </div>
 
-            <div
-                className="period-dot"
-                style={{ backgroundColor: activeColor[periodType] }}
-            />
+            <div className="period-dot" style={{ backgroundColor: activeColor[period.type] }} />
+
             <div className="period-info">
                 {isEditing ? (
                     <div
                         className="period-edit-row"
-                        onClick={(e) => e.stopPropagation()}
                         onBlur={(e) => {
-                            if (!e.currentTarget.contains(e.relatedTarget)) {
-                                onCommitEdit();
-                            }
+                            if (!e.currentTarget.contains(e.relatedTarget)) editor.commitEdit();
                         }}
                     >
                         <input
-                            ref={inputRef}
+                            ref={editor.inputRef}
                             type="number"
                             min="1"
-                            max="999"
+                            max={isLactancia ? 999 : (maxWeeks ?? 999)}
                             step={1}
                             className="period-edit-input"
-                            value={editValue}
-                            onChange={(e) => onEditValueChange(e.target.value)}
+                            aria-label={t.clickToEdit}
+                            value={editor.editValue}
+                            onChange={(e) => editor.setEditValue(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter') onCommitEdit();
-                                if (e.key === 'Escape') onCancelEdit();
+                                if (e.key === 'Enter') editor.commitEdit();
+                                if (e.key === 'Escape') editor.cancelEdit();
                             }}
                         />
-                        {isLactancia ? (
+                        {isLactancia && !isNaturalLactancia ? (
                             <select
                                 className="period-edit-unit-select"
-                                value={editUnit}
-                                onChange={(e) =>
-                                    onEditUnitChange(e.target.value as EditUnit)
-                                }
-                                onMouseDown={(e) => e.stopPropagation()}
+                                aria-label={t.unitDays}
+                                value={editor.editUnit}
+                                onChange={(e) => editor.setEditUnit(e.target.value as EditUnit)}
                             >
-                                <option value="days">
-                                    {lang === 'es' ? 'días' : 'days'}
-                                </option>
-                                <option value="weeks">
-                                    {lang === 'es' ? 'sem.' : 'weeks'}
-                                </option>
-                                <option value="months">
-                                    {lang === 'es' ? 'meses' : 'months'}
-                                </option>
+                                <option value="days">{t.unitDays}</option>
+                                <option value="weeks">{t.unitWeeksShort}</option>
+                                <option value="months">{t.unitMonths}</option>
                             </select>
                         ) : (
                             <span className="period-edit-unit">
-                                {lang === 'es' ? 'sem.' : 'weeks'}
+                                {unitLabel(period.type === LEAVE_TYPES.CONVENIO ? 'days' : 'weeks')}
                             </span>
                         )}
                     </div>
-                ) : (
-                    <span className="period-type">
-                        {formatLeaveType(period, t)}
-                        <span className="period-edit-icon" title={t.clickToEdit}>
+                ) : canEditDuration ? (
+                    <button
+                        type="button"
+                        className="period-type period-type-btn"
+                        onClick={() => editor.startEditing(parentIndex, period)}
+                        title={t.clickToEdit}
+                        aria-label={`${label}. ${t.clickToEdit}`}
+                    >
+                        {label}
+                        <span className="period-edit-icon" aria-hidden="true">
                             ✎
+                        </span>
+                    </button>
+                ) : (
+                    <span className="period-type extra-period-name">
+                        {label}
+                        <span className="extra-period-badge">
+                            {period.durationValue}{' '}
+                            {period.durationUnit === 'weeks' ? t.unitWeeksShort : t.unitDays}
                         </span>
                     </span>
                 )}
 
-                {isEditingThisDate ? (
-                    <div
-                        className="period-date-picker-row"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                {isEditingDate ? (
+                    <div className="period-date-picker-row">
                         <DatePicker
-                            selected={editStartDateValue}
+                            selected={editor.editStartDateValue}
                             onChange={(date: Date | null) => {
-                                if (date) onCommitStartDate(date);
+                                if (date) editor.commitStartDate(date);
                             }}
-                            onClickOutside={onCancelEditDate}
+                            onClickOutside={editor.cancelStartDate}
                             open
-                            minDate={minEditStartDate ?? undefined}
+                            minDate={editor.minEditStartDate ?? undefined}
                             dateFormat="dd/MM/yyyy"
                             locale={t.datePickerLocale}
                             calendarClassName="dp-dark"
@@ -216,35 +187,82 @@ export default function PeriodRow({
                                 <input
                                     className="period-edit-input period-edit-input--date"
                                     readOnly
+                                    aria-label={t.clickToEditStartDate}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Escape') onCancelEditDate();
+                                        if (e.key === 'Escape') editor.cancelStartDate();
                                     }}
                                 />
                             }
                         />
                     </div>
                 ) : (
-                    <span
+                    <button
+                        type="button"
                         className="period-dates period-dates-editable"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onCancelEdit();
-                            onOpenStartDateEdit(
+                        onClick={() =>
+                            editor.openStartDateEdit(
                                 parentIndex,
                                 periodKey,
                                 parseLocalDate(period.startDate),
-                            );
-                        }}
+                                minStartDate,
+                            )
+                        }
+                        title={t.clickToEditStartDate}
+                        aria-label={`${formatDisplayDate(parseLocalDate(period.startDate), lang)} → ${formatDisplayDate(parseLocalDate(period.endDate), lang)}. ${t.clickToEditStartDate}`}
                     >
-                        {formatDisplayDate(parseLocalDate(period.startDate))} →{' '}
-                        {formatDisplayDate(parseLocalDate(period.endDate))}
-                        <span
-                            className="period-date-edit-icon"
-                            title={t.clickToEditStartDate}
-                        >
+                        {formatDisplayDate(parseLocalDate(period.startDate), lang)} →{' '}
+                        {formatDisplayDate(parseLocalDate(period.endDate), lang)}
+                        <span className="period-date-edit-icon" aria-hidden="true">
                             ✎
                         </span>
+                    </button>
+                )}
+
+                {isLactancia && period.days !== null && (
+                    <span className="period-hint">
+                        {parent.regime === 'et'
+                            ? t.lactanciaEstimateHint
+                            : t.lactanciaEstimateHintPublic}
                     </span>
+                )}
+                {warningText && (
+                    <span className="period-warning" role="note" data-testid="period-warning">
+                        ⚠️ {warningText}
+                    </span>
+                )}
+            </div>
+
+            <div className="period-actions">
+                <button
+                    type="button"
+                    className="btn-period-move"
+                    onClick={() => editor.move(parentIndex, periodKey, -1)}
+                    disabled={!canMoveEarlier}
+                    title={t.moveEarlier}
+                    aria-label={t.moveEarlier}
+                >
+                    ▲
+                </button>
+                <button
+                    type="button"
+                    className="btn-period-move"
+                    onClick={() => editor.move(parentIndex, periodKey, 1)}
+                    disabled={!canMoveLater}
+                    title={t.moveLater}
+                    aria-label={t.moveLater}
+                >
+                    ▼
+                </button>
+                {isExtra && period.extraId && (
+                    <button
+                        type="button"
+                        className="btn-delete-extra"
+                        title={t.remove}
+                        aria-label={`${t.remove}: ${label}`}
+                        onClick={() => editor.removeExtra(parentIndex, period.extraId!)}
+                    >
+                        ✕
+                    </button>
                 )}
             </div>
         </div>

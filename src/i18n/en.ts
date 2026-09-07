@@ -1,39 +1,48 @@
-// Shape of all translation strings.
-// Using an interface (not `typeof en`) so that Spanish can use different string values.
 export interface TranslationKeys {
-    // ── Wizard ────────────────────────────────────────────────────────────
     wizardTitle: string;
     wizardSubtitle: string;
     back: string;
     next: string;
     calculate: string;
+    editWarning: string;
+    invalidShareLink: string;
 
-    // Step labels
     stepDueDate: string;
     stepParents: string;
     stepNames: string;
+    stepDetails: string;
     stepLeaveMode: string;
     stepWhoStarts: string;
-    stepChildcare: string;
 
-    // StepDueDate
     dueDateTitle: string;
     dueDateDescription: string;
     dueDatePlaceholder: string;
-    dueDateLabel: string;
+    oldRegimeWarning: string;
 
-    // StepParentCount
     parentCountTitle: string;
-    parentCountOne: string;
     parentCountTwo: string;
+    parentCountTwoDesc: (weeks: number) => string;
+    parentCountSingle: string;
+    parentCountSingleDesc: (weeks: number) => string;
 
-    // StepNames
     namesTitle: string;
     namesDescription: string;
     namePlaceholder: (n: number) => string;
-    colorLabel: string;
+    colorOption: (name: string) => string;
 
-    // StepLeaveMode
+    detailsTitle: string;
+    detailsDescription: string;
+    babiesLabel: string;
+    babiesOption: (n: number) => string;
+    disabilityLabel: string;
+    disabilityHint: string;
+    motherLabel: string;
+    motherHint: string;
+    motherNone: string;
+    anticipatedLabel: string;
+    anticipatedHint: string;
+    allowanceSummary: (mandatory: number, flexible: number, extra: number) => string;
+
     leaveModeTitle: string;
     leaveModeDescription: string;
     modeTogether: string;
@@ -41,19 +50,11 @@ export interface TranslationKeys {
     modeOptimized: string;
     modeOptimizedDesc: string;
 
-    // StepFirstParent
     firstParentTitle: string;
     firstParentDescription: string;
+    hintFirstParent: string;
+    hintSecondParent: string;
 
-    // StepCuidado
-    cuidadoTitle: string;
-    cuidadoDescription: string;
-    cuidadoCheck: (name: string) => string;
-    cuidadoWeeks: string;
-    cuidadoWeeksHint: (paid: number) => string;
-    cuidadoMax: (max: number) => string;
-
-    // ── Calendar ──────────────────────────────────────────────────────────
     scheduleTitle: string;
     dueDate: string;
     mode: string;
@@ -61,7 +62,6 @@ export interface TranslationKeys {
     modeLabelOptimized: string;
     btnEdit: string;
     btnReset: string;
-    btnPrint: string;
     btnResetCustom: string;
     resetTooltip: string;
     resetCustomTooltip: string;
@@ -71,232 +71,271 @@ export interface TranslationKeys {
     btnShare: string;
     shareSuccess: string;
     shareError: string;
+    legalDisclaimer: string;
 
-    // Summary card
     requiredByLaw: string;
     requiredByLawTooltip: string;
+    anticipatedBadge: string;
+    anticipatedTooltip: string;
     dragToReorder: string;
+    moveEarlier: string;
+    moveLater: string;
     clickToEdit: string;
     clickToEditStartDate: string;
-    shifted: string;
-    custom: string;
     remove: string;
+    warnAfterFirstBirthday: string;
+    warnAfterEighthBirthday: string;
+    lactanciaEstimateHint: string;
 
-    // Work timeline
     workTimeline: string;
     stopsWorking: string;
     returnsToWork: string;
     returnsToWorkFinal: string;
-    returnsToWorkOn: string;
 
-    // Add-period form
     periodNamePlaceholder: string;
 
-    // Leave type labels
+    anticipatedLeave: (weeks: number) => string;
     mandatoryLeave: (weeks: number) => string;
     flexibleLeave: (weeks: number) => string;
+    extraUntil8Leave: (weeks: number) => string;
     accumulatedLactancia: (val: number | string, unit: string) => string;
-    childcareLeavePaidUnpaid: (paid: number, unpaid: number) => string;
-    childcareLeavePaid: (weeks: number) => string;
-    childcareLeave: string;
     extraPeriod: string;
-    flexibleExtra: (rem: number) => string;
+    flexibleExtraLabel: (weeks: number) => string;
+    flexibleExtraOption: (remaining: number) => string;
 
-    // Legend
-    legend: string;
     birthDate: string;
+    today: string;
     parentMandatory: (name: string) => string;
     parentFlexible: (name: string) => string;
     parentLactancia: (name: string) => string;
-    parentChildcare: (name: string) => string;
+    parentExtraUntil8: (name: string) => string;
     parentExtra: (name: string) => string;
 
-    // Hide parent toggle
     hideParent: string;
     showParent: string;
 
-    // Datepicker locale
     datePickerLocale: string;
 
-    // Tooltips & A11y
     tooltipChangeDueDate: string;
     tooltipSwitchLang: string;
     tooltipSwitchTheme: (theme: string) => string;
 
-    // Units
     unitDays: string;
     unitWeeksShort: string;
+    unitMonths: string;
 
-    // Presets
     presetVacation: string;
+    presetParental: string;
     presetUnpaid: string;
-    presetGradual: string;
     presetCustom: string;
 
-    // Wizard hints
-    hintFirstParent: string;
-    hintSecondParent: string;
-
-    // Cuidado
-    cuidadoPaidBadge: string;
-    cuidadoUnpaidBadge: string;
     yes: string;
     no: string;
-    cuidadoWeekPaidTooltip: (w: number) => string;
-    cuidadoWeekUnpaidTooltip: (w: number) => string;
-    cuidadoFullPaid: (w: number) => string;
-    cuidadoPaidUnpaid: (p: number, u: number) => string;
+
+    errorTitle: string;
+    errorReset: string;
+
+    regimeLabel: string;
+    regimeOption: (regime: string) => string;
+    regimeHint: (regime: string) => string;
+    convenioDaysLabel: string;
+    convenioDaysHint: string;
+    anticipatedNotAvailable: string;
+    gestationLeave: (weeks: number) => string;
+    gestationBadge: string;
+    gestationTooltip: string;
+    convenioLeave: (days: number) => string;
+    accumulatedLactanciaNatural: (days: number) => string;
+    lactanciaEstimateHintPublic: string;
+    parentConvenio: (name: string) => string;
 }
 
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
 export const en: TranslationKeys = {
-    // ── Wizard ────────────────────────────────────────────────────────────
-    wizardTitle: '🇪🇸 Paternity Leave Planner',
-    wizardSubtitle: 'Plan your Spanish paternity/maternity leave',
+    wizardTitle: '🇪🇸 Parental Leave Planner',
+    wizardSubtitle: 'Plan your Spanish birth and childcare leave',
     back: '← Back',
     next: 'Next →',
     calculate: 'Calculate →',
+    editWarning: 'Recalculating will discard any manual changes you made in the calendar.',
+    invalidShareLink:
+        'The shared link is not valid or was created with an older version of the planner.',
 
-    // Step labels
-    stepDueDate: 'Due Date',
-    stepParents: 'Parents',
+    stepDueDate: 'Due date',
+    stepParents: 'Family',
     stepNames: 'Names',
-    stepLeaveMode: 'Leave Mode',
-    stepWhoStarts: 'Who Starts',
-    stepChildcare: 'Childcare',
+    stepDetails: 'Details',
+    stepLeaveMode: 'Leave mode',
+    stepWhoStarts: 'Who starts',
 
-    // StepDueDate
     dueDateTitle: "What's the due date?",
-    dueDateDescription: "Enter the baby's expected due date. You can update it later from the calendar view.",
+    dueDateDescription:
+        'Enter the expected due date, or the actual birth date if the baby is already born. You can change it later from the calendar.',
     dueDatePlaceholder: 'Select a date…',
-    dueDateLabel: 'Due date',
+    oldRegimeWarning:
+        'Births before 31 July 2025 fall under the previous rules (16 weeks). This planner only models the current regime.',
 
-    // StepParentCount
-    parentCountTitle: 'How many parents are planning leave?',
-    parentCountOne: '1 parent',
-    parentCountTwo: '2 parents',
+    parentCountTitle: 'What kind of family?',
+    parentCountTwo: 'Two parents',
+    parentCountTwoDesc: (weeks) => `${weeks} weeks each`,
+    parentCountSingle: 'Single-parent family',
+    parentCountSingleDesc: (weeks) => `One parent, ${weeks} weeks in total`,
 
-    // StepNames
-    namesTitle: 'What are the parents\' names?',
-    namesDescription: 'Enter names and choose a color for each parent.',
-    namePlaceholder: (n: number) => `Parent ${n} name`,
-    colorLabel: 'Color',
+    namesTitle: "What are the parents' names?",
+    namesDescription: 'Enter a name and pick a colour for each parent.',
+    namePlaceholder: (n) => `Parent ${n} name`,
+    colorOption: (name) => `${name} colour`,
 
-    // StepLeaveMode
-    leaveModeTitle: 'How do you want to organize the leave?',
-    leaveModeDescription: 'Choose whether both parents take leave at the same time, or stagger it to maximize total coverage.',
+    detailsTitle: 'A few details',
+    detailsDescription:
+        'These affect the number of weeks. The defaults cover the most common case.',
+    babiesLabel: 'Babies',
+    babiesOption: (n) => (n === 1 ? 'One' : n === 2 ? 'Twins' : 'Triplets'),
+    disabilityLabel: 'Child with a disability',
+    disabilityHint: 'Adds one extra week per parent (two for a single parent).',
+    motherLabel: 'Biological mother',
+    motherHint: 'Only the biological mother may start part of her leave before the birth.',
+    motherNone: 'None / not applicable',
+    anticipatedLabel: 'Weeks taken before the due date',
+    anticipatedHint: 'Up to 4 flexible weeks may be taken before the expected due date.',
+    allowanceSummary: (mandatory, flexible, extra) =>
+        `Per parent: ${mandatory} mandatory + ${flexible} flexible weeks (until 12 months) + ${extra} weeks until age 8 = ${mandatory + flexible + extra} weeks.`,
+
+    leaveModeTitle: 'How do you want to organise the leave?',
+    leaveModeDescription:
+        'Take the leave at the same time, or stagger it so that one parent is always at home.',
     modeTogether: 'Together',
-    modeTogetherDesc: "Both parents take all leave simultaneously. You'll both be home at the same time but return to work sooner.",
-    modeOptimized: 'Optimized',
-    modeOptimizedDesc: 'Stagger the flexible leave so one parent is always home. Maximizes total time with the baby.',
+    modeTogetherDesc:
+        "Both parents take all their leave at the same time. You'll be home together but return to work sooner.",
+    modeOptimized: 'Staggered',
+    modeOptimizedDesc:
+        'After the 6 mandatory weeks, one parent continues while the other returns to work and takes their weeks later. Maximises time with the baby.',
 
-    // StepFirstParent
-    firstParentTitle: 'Who takes flexible leave first?',
-    firstParentDescription: 'In optimized mode, one parent finishes mandatory leave and begins flexible leave while the other is still on mandatory leave.',
+    firstParentTitle: 'Who continues after the mandatory weeks?',
+    firstParentDescription:
+        'The other parent returns to work after the 6 mandatory weeks and takes the remaining leave once the first parent goes back.',
+    hintFirstParent: '🏠 Stays home first',
+    hintSecondParent: '🏢 Returns to work, takes leave later',
 
-    // StepCuidado
-    cuidadoTitle: 'Childcare leave (optional)',
-    cuidadoDescription: 'Spanish law grants up to 8 weeks of childcare leave per parent (permiso de cuidado del hijo) for children up to 8 years old. The first 2 weeks are paid.',
-    cuidadoCheck: (name: string) => `${name} will take childcare leave`,
-    cuidadoWeeks: 'Weeks',
-    cuidadoWeeksHint: (paid: number) => `First ${paid} weeks are paid, the rest are unpaid.`,
-    cuidadoMax: (max: number) => `Maximum ${max} weeks`,
-
-    // ── Calendar ──────────────────────────────────────────────────────────
-    scheduleTitle: '🗓️ Leave Schedule',
+    scheduleTitle: '🗓️ Leave schedule',
     dueDate: 'Due date',
     mode: 'Mode',
     modeLabelTogether: 'Together',
-    modeLabelOptimized: 'Optimized',
+    modeLabelOptimized: 'Staggered',
     btnEdit: '✏️ Edit',
     btnReset: '↺ Reset',
-    btnPrint: '🖨️ Print',
     btnResetCustom: '↺ Reset',
     resetTooltip: 'Start over',
-    resetCustomTooltip: 'Reset to standard leave days',
+    resetCustomTooltip: 'Reset this parent to the standard schedule',
     btnAddPeriod: '+ Add period',
     add: 'Add',
     cancel: 'Cancel',
     btnShare: '🔗 Share',
-    shareSuccess: 'URL copied to clipboard!',
-    shareError: 'Failed to copy URL',
+    shareSuccess: 'Link copied to clipboard!',
+    shareError: 'Could not copy the link',
+    legalDisclaimer:
+        'Planning tool based on art. 48.4 of the Spanish Workers’ Statute (as amended by RDL 9/2025). It is not legal advice: confirm dates with your employer and the INSS.',
 
-    // Summary card
     requiredByLaw: '🔒 Required by law',
-    requiredByLawTooltip: 'This leave is mandatory under Spanish law and cannot be modified',
+    requiredByLawTooltip:
+        'Six uninterrupted full-time weeks starting on the birth date. Cannot be changed.',
+    anticipatedBadge: 'Before the birth',
+    anticipatedTooltip:
+        'Flexible weeks the biological mother takes before the expected due date. Change it from the wizard.',
     dragToReorder: 'Drag to reorder',
-    clickToEdit: 'Click to edit',
-    clickToEditStartDate: 'Click to edit start date',
-    shifted: 'shifted',
-    custom: 'custom',
+    moveEarlier: 'Move earlier',
+    moveLater: 'Move later',
+    clickToEdit: 'Edit duration',
+    clickToEditStartDate: 'Edit start date',
     remove: 'Remove',
+    warnAfterFirstBirthday: 'Flexible weeks must be used before the child turns 12 months.',
+    warnAfterEighthBirthday: 'These weeks must be used before the child turns 8.',
+    lactanciaEstimateHint:
+        'Estimate: one hour per working day until 9 months, accumulated into full days. Your collective agreement may differ.',
 
-    // Work timeline
     workTimeline: '🏢 Work timeline',
     stopsWorking: 'Stops working',
     returnsToWork: 'Returns to work',
     returnsToWorkFinal: 'Returns to work (final)',
-    returnsToWorkOn: 'Returns to work on',
 
-    // Add-period form
     periodNamePlaceholder: 'Period name…',
 
-    // Leave type labels
-    mandatoryLeave: (weeks: number) => `Mandatory Leave (${weeks} weeks)`,
-    flexibleLeave: (weeks: number) => `Flexible Leave (${weeks} weeks)`,
-    accumulatedLactancia: (val: number | string, unit: string) => {
-        const isSingular = Number(val) === 1;
-        if (unit === 'days') return `Accumulated Lactancia (${val} day${isSingular ? '' : 's'})`;
-        if (unit === 'weeks') return `Accumulated Lactancia (${val} week${isSingular ? '' : 's'})`;
-        return `Accumulated Lactancia (${val} month${isSingular ? '' : 's'})`;
+    anticipatedLeave: (weeks) => `Before the birth (${weeks} ${plural(weeks, 'week', 'weeks')})`,
+    mandatoryLeave: (weeks) => `Mandatory leave (${weeks} weeks)`,
+    flexibleLeave: (weeks) => `Flexible leave (${weeks} ${plural(weeks, 'week', 'weeks')})`,
+    extraUntil8Leave: (weeks) =>
+        `Extra weeks until age 8 (${weeks} ${plural(weeks, 'week', 'weeks')})`,
+    accumulatedLactancia: (val, unit) => {
+        const n = Number(val);
+        if (unit === 'weeks') return `Accumulated lactancia (${val} ${plural(n, 'week', 'weeks')})`;
+        if (unit === 'months')
+            return `Accumulated lactancia (${val} ${plural(n, 'month', 'months')})`;
+        return `Accumulated lactancia (${val} ${plural(n, 'day', 'days')})`;
     },
-    childcareLeavePaidUnpaid: (paid: number, unpaid: number) => `Childcare Leave (${paid}w paid + ${unpaid}w unpaid)`,
-    childcareLeavePaid: (weeks: number) => `Childcare Leave (${weeks} week${weeks !== 1 ? 's' : ''} paid)`,
-    childcareLeave: 'Childcare Leave',
     extraPeriod: 'Extra period',
-    flexibleExtra: (rem: number) => `📅 Flexible Leave (${rem}w remaining)`,
+    flexibleExtraLabel: (weeks) =>
+        `📅 Flexible leave, extra block (${weeks} ${plural(weeks, 'week', 'weeks')})`,
+    flexibleExtraOption: (remaining) =>
+        `📅 Flexible leave (${remaining} ${plural(remaining, 'week', 'weeks')} left)`,
 
-    // Legend
-    legend: 'Legend',
     birthDate: 'Birth date',
-    parentMandatory: (name: string) => `${name} — Mandatory`,
-    parentFlexible: (name: string) => `${name} — Flexible`,
-    parentLactancia: (name: string) => `${name} — Lactancia`,
-    parentChildcare: (name: string) => `${name} — Childcare`,
-    parentExtra: (name: string) => `${name} — Extra periods`,
+    today: 'Today',
+    parentMandatory: (name) => `${name} — Mandatory`,
+    parentFlexible: (name) => `${name} — Flexible`,
+    parentLactancia: (name) => `${name} — Lactancia`,
+    parentExtraUntil8: (name) => `${name} — Weeks until age 8`,
+    parentExtra: (name) => `${name} — Extra periods`,
 
-    // Hide parent toggle
-    hideParent: 'Hide parent data',
-    showParent: 'Show parent data',
+    hideParent: 'Hide this parent',
+    showParent: 'Show this parent',
 
-    // Datepicker locale
     datePickerLocale: 'en-GB',
 
-    // Tooltips & A11y
-    tooltipChangeDueDate: 'Click to change due date',
-    tooltipSwitchLang: 'Switch to Spanish',
-    tooltipSwitchTheme: (theme: string) => `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
+    tooltipChangeDueDate: 'Change due date',
+    tooltipSwitchLang: 'Cambiar a español',
+    tooltipSwitchTheme: (theme) => `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
 
-    // Units
     unitDays: 'days',
     unitWeeksShort: 'weeks',
+    unitMonths: 'months',
 
-    // Presets
-    presetVacation: 'vacation',
-    presetUnpaid: 'unpaid leave',
-    presetGradual: 'gradual return',
-    presetCustom: 'custom',
+    presetVacation: 'Holidays',
+    presetParental: 'Parental leave (unpaid, up to 8 weeks)',
+    presetUnpaid: 'Unpaid leave',
+    presetCustom: 'Custom',
 
-    // Wizard hints
-    hintFirstParent: '🏠 Stays home first — takes flexible leave right after mandatory',
-    hintSecondParent: '🏢 Returns to work after mandatory, takes flexible leave later',
-
-    // Cuidado
-    cuidadoPaidBadge: 'paid',
-    cuidadoUnpaidBadge: 'unpaid',
     yes: 'Yes',
     no: 'No',
-    cuidadoWeekPaidTooltip: (w: number) => `Week ${w} – paid`,
-    cuidadoWeekUnpaidTooltip: (w: number) => `Week ${w} – unpaid`,
-    cuidadoFullPaid: (w: number) => `${w} week${w !== 1 ? 's' : ''} — fully paid`,
-    cuidadoPaidUnpaid: (p: number, u: number) => `${p} weeks paid + ${u} week${u !== 1 ? 's' : ''} unpaid`,
+
+    errorTitle: 'Something went wrong',
+    errorReset: 'Reset the application',
+
+    regimeLabel: 'Employment regime',
+    regimeOption: (regime) =>
+        regime === 'et'
+            ? 'Private sector (Estatuto de los Trabajadores)'
+            : regime === 'ebep'
+              ? 'Public employee (EBEP)'
+              : 'SERMAS (Madrid health service)',
+    regimeHint: (regime) =>
+        regime === 'et'
+            ? 'Lactancia until 9 months. Your collective agreement may add paid days: enter them below.'
+            : regime === 'ebep'
+              ? 'Lactancia until 12 months. No weeks can be taken before the birth.'
+              : 'SERMAS pact: paid leave from week 37, 10 extra paid days for the biological mother and 30 calendar days of accumulated lactancia (until 12 months).',
+    convenioDaysLabel: 'Extra paid days from your employer or agreement',
+    convenioDaysHint: 'Calendar days added right after the birth leave. Leave 0 if none.',
+    anticipatedNotAvailable: 'Public employees cannot start the leave before the birth.',
+    gestationLeave: (weeks) =>
+        `Paid leave before the birth (${weeks} ${plural(weeks, 'week', 'weeks')})`,
+    gestationBadge: 'From week 37',
+    gestationTooltip:
+        'SERMAS paid leave from pregnancy week 37 (35 for multiple births) plus the special sick leave from week 39. Does not use up any leave weeks.',
+    convenioLeave: (days) => `Extra paid days (${days} ${plural(days, 'day', 'days')})`,
+    accumulatedLactanciaNatural: (days) =>
+        `Accumulated lactancia (${days} calendar ${plural(days, 'day', 'days')})`,
+    lactanciaEstimateHintPublic:
+        'Estimate: one hour per working day until 12 months, accumulated into full days. Check your administration’s rule.',
+    parentConvenio: (name) => `${name} — Extra paid days`,
 };

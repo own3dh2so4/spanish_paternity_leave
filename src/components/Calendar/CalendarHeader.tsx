@@ -1,12 +1,16 @@
+import { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import type { WizardData } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
-import { formatDisplayDate } from '../../utils/leaveCalculator';
+import type { Language } from '../../i18n/LanguageContext';
+import type { Theme } from '../../theme/ThemeContext';
+import { formatDisplayDate, parseLocalDate } from '../../utils/dates';
+import HeaderControls from '../HeaderControls';
 
 interface Props {
     data: WizardData;
-    lang: string;
-    theme: string;
+    lang: Language;
+    theme: Theme;
     t: TranslationKeys;
     onEdit: () => void;
     onReset: () => void;
@@ -15,6 +19,12 @@ interface Props {
     onToggleLang: () => void;
     onToggleTheme: () => void;
 }
+
+const DueDateButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+    function DueDateButton(props, ref) {
+        return <button type="button" ref={ref} {...props} className="header-due-date" />;
+    },
+);
 
 export default function CalendarHeader({
     data,
@@ -28,14 +38,15 @@ export default function CalendarHeader({
     onToggleLang,
     onToggleTheme,
 }: Props) {
+    const dueDate = parseLocalDate(data.dueDate);
     return (
-        <div className="calendar-header">
+        <header className="calendar-header">
             <div className="header-left">
                 <h1>{t.scheduleTitle}</h1>
                 <p className="header-subtitle">
                     {t.dueDate}:{' '}
                     <DatePicker
-                        selected={new Date(data.dueDate)}
+                        selected={dueDate}
                         onChange={onDueDateChange}
                         dateFormat="dd/MM/yyyy"
                         locale={t.datePickerLocale}
@@ -45,19 +56,19 @@ export default function CalendarHeader({
                         dropdownMode="select"
                         popperPlacement="bottom-start"
                         customInput={
-                            <strong
-                                className="header-due-date"
+                            <DueDateButton
                                 title={t.tooltipChangeDueDate}
+                                aria-label={t.tooltipChangeDueDate}
                             >
-                                {formatDisplayDate(new Date(data.dueDate))}
-                            </strong>
+                                {formatDisplayDate(dueDate, lang)}
+                            </DueDateButton>
                         }
                     />
                     {data.parentCount === 2 && (
                         <>
                             {' '}
                             · {t.mode}:{' '}
-                            <strong>
+                            <strong data-testid="mode-label">
                                 {data.leaveMode === 'together'
                                     ? t.modeLabelTogether
                                     : t.modeLabelOptimized}
@@ -67,39 +78,39 @@ export default function CalendarHeader({
                 </p>
             </div>
             <div className="header-toolbar">
-                <button className="btn btn-edit" onClick={onEdit}>
+                <button
+                    type="button"
+                    className="btn btn-edit"
+                    onClick={onEdit}
+                    data-testid="edit-btn"
+                >
                     {t.btnEdit}
                 </button>
                 <button
+                    type="button"
                     className="btn btn-secondary"
                     onClick={onReset}
                     title={t.resetTooltip}
+                    data-testid="reset-btn"
                 >
                     {t.btnReset}
                 </button>
                 <button
+                    type="button"
                     className="btn btn-secondary"
                     onClick={onShare}
-                    title={t.btnShare}
+                    data-testid="share-btn"
                 >
                     {t.btnShare}
                 </button>
-                <button
-                    className="btn-icon btn btn-secondary"
-                    style={{ fontSize: '0.78rem', fontWeight: 700 }}
-                    onClick={onToggleLang}
-                    title={t.tooltipSwitchLang}
-                >
-                    {lang === 'en' ? '🇪🇸 ES' : '🇬🇧 EN'}
-                </button>
-                <button
-                    className="btn btn-secondary"
-                    onClick={onToggleTheme}
-                    title={t.tooltipSwitchTheme(theme)}
-                >
-                    {theme === 'dark' ? '☀️' : '🌙'}
-                </button>
+                <HeaderControls
+                    lang={lang}
+                    theme={theme}
+                    t={t}
+                    onToggleLang={onToggleLang}
+                    onToggleTheme={onToggleTheme}
+                />
             </div>
-        </div>
+        </header>
     );
 }

@@ -12,12 +12,15 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # ── Build target ──────────────────────────────────────────────────────────────
 FROM base AS builder
+ARG VITE_BASE=/
+ENV VITE_BASE=$VITE_BASE
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN npx tsc --noEmit && npm run test:run && npm run build
 
 # ── Production target (nginx) ─────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS prod
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \

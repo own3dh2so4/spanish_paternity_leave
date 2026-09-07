@@ -1,20 +1,12 @@
-import React from 'react';
-import { LEAVE_TYPES } from '../../constants';
-import type {
-    ColorPalette,
-    ComputedParentSchedule,
-    ComputedPeriod,
-    EditUnit,
-} from '../../types';
+import type { ColorPalette, ComputedParentSchedule } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
-import type { usePeriodEdit } from '../../hooks/usePeriodEdit';
-import type { useDragSort } from '../../hooks/useDragSort';
-import type { useStartDateEdit } from '../../hooks/useStartDateEdit';
-import type { useExtraPeriods } from '../../hooks/useExtraPeriods';
-import { parseLocalDate, getPeriodKey } from '../../utils/calendarHelpers';
-import MandatoryPeriodRow from './MandatoryPeriodRow';
+import type { Language } from '../../i18n/LanguageContext';
+import type { ScheduleEditor } from '../../hooks/useScheduleEditor';
+import { getPeriodKey } from '../../utils/calendarHelpers';
+import { parseLocalDate } from '../../utils/dates';
+import { splitFixed } from '../../utils/periodChain';
+import FixedPeriodRow from './FixedPeriodRow';
 import PeriodRow from './PeriodRow';
-import ExtraPeriodRow from './ExtraPeriodRow';
 import AddExtraForm from './AddExtraForm';
 import WorkTimeline from './WorkTimeline';
 
@@ -23,64 +15,12 @@ interface Props {
     parent: ComputedParentSchedule;
     activeColor: ColorPalette;
     isHidden: boolean;
-    lang: string;
+    dueDate: string;
+    lang: Language;
     t: TranslationKeys;
+    editor: ScheduleEditor;
     onToggleVisibility: (idx: number) => void;
     onResetCustom: (idx: number) => void;
-    // Period edit
-    editingPeriod: ReturnType<typeof usePeriodEdit>['editingPeriod'];
-    editValue: string;
-    editUnit: EditUnit;
-    inputRef: React.RefObject<HTMLInputElement | null>;
-    onStartEditing: (parentIndex: number, period: ComputedPeriod) => void;
-    onCommitEdit: () => void;
-    onCancelEdit: () => void;
-    onEditValueChange: (v: string) => void;
-    onEditUnitChange: (u: EditUnit) => void;
-    // Drag
-    draggingKey: ReturnType<typeof useDragSort>['draggingKey'];
-    dragOverKey: ReturnType<typeof useDragSort>['dragOverKey'];
-    onDragStart: (parentIndex: number, key: string) => void;
-    onDragOver: (e: React.DragEvent, parentIndex: number, key: string) => void;
-    onDrop: (e: React.DragEvent, parentIndex: number, targetKey: string) => void;
-    onDragEnd: () => void;
-    // Start date edit
-    editingStartDate: ReturnType<typeof useStartDateEdit>['editingStartDate'];
-    editStartDateValue: Date | null;
-    minEditStartDate: Date | null;
-    onOpenStartDateEdit: (
-        parentIndex: number,
-        periodKey: string,
-        currentDate: Date,
-        minDate: Date,
-    ) => void;
-    onCommitStartDate: (date: Date) => void;
-    onCancelEditDate: () => void;
-    // Extra periods
-    addingForParent: ReturnType<typeof useExtraPeriods>['addingForParent'];
-    newPresetKey: string;
-    newCustomName: string;
-    newDurationValue: number;
-    newDurationUnit: 'days' | 'weeks';
-    onOpenAddForm: (parentIndex: number) => void;
-    onPresetChange: (key: string, parentSchedule: ComputedParentSchedule) => void;
-    onCustomNameChange: (v: string) => void;
-    onDurationValueChange: (v: number) => void;
-    onDurationUnitChange: (u: 'days' | 'weeks') => void;
-    onConfirmAddExtra: (parentIndex: number) => void;
-    onCancelAddForm: () => void;
-    editingExtraDate: ReturnType<typeof useExtraPeriods>['editingExtraDate'];
-    editExtraDateValue: Date | null;
-    minEditExtraDate: Date | null;
-    onOpenExtraDateEdit: (
-        parentIndex: number,
-        itemId: string,
-        currentDate: Date,
-        minDate: Date,
-    ) => void;
-    onCommitExtraStartDate: (date: Date) => void;
-    onCancelExtraDateEdit: () => void;
-    onDeleteExtra: (parentIndex: number, extraId: string) => void;
 }
 
 export default function SummaryCard({
@@ -88,203 +28,94 @@ export default function SummaryCard({
     parent,
     activeColor,
     isHidden,
+    dueDate,
     lang,
     t,
+    editor,
     onToggleVisibility,
     onResetCustom,
-    editingPeriod,
-    editValue,
-    editUnit,
-    inputRef,
-    onStartEditing,
-    onCommitEdit,
-    onCancelEdit,
-    onEditValueChange,
-    onEditUnitChange,
-    draggingKey,
-    dragOverKey,
-    onDragStart,
-    onDragOver,
-    onDrop,
-    onDragEnd,
-    editingStartDate,
-    editStartDateValue,
-    minEditStartDate,
-    onOpenStartDateEdit,
-    onCommitStartDate,
-    onCancelEditDate,
-    addingForParent,
-    newPresetKey,
-    newCustomName,
-    newDurationValue,
-    newDurationUnit,
-    onOpenAddForm,
-    onPresetChange,
-    onCustomNameChange,
-    onDurationValueChange,
-    onDurationUnitChange,
-    onConfirmAddExtra,
-    onCancelAddForm,
-    editingExtraDate,
-    editExtraDateValue,
-    minEditExtraDate,
-    onOpenExtraDateEdit,
-    onCommitExtraStartDate,
-    onCancelExtraDateEdit,
-    onDeleteExtra,
 }: Props) {
-    const mandatoryPeriod = parent.periods.find(
-        (p) => p.type === LEAVE_TYPES.MANDATORY,
-    );
-    const nonMandatoryPeriods = parent.periods.filter(
-        (p) => p.type !== LEAVE_TYPES.MANDATORY,
-    );
+    const { fixed, editable } = splitFixed(parent.periods);
+    const mandatory = fixed.find((p) => p.type === 'mandatory');
 
-    /** Minimum start date for a non-mandatory period at `idx` in `nonMandatoryPeriods`. */
-    const getMinStartDate = (idx: number): Date => {
-        if (idx > 0) {
-            return parseLocalDate(nonMandatoryPeriods[idx - 1].endDate);
-        }
-        if (mandatoryPeriod) {
-            return parseLocalDate(mandatoryPeriod.endDate);
-        }
-        return new Date();
+    const minStartFor = (idx: number): Date => {
+        if (idx > 0) return parseLocalDate(editable[idx - 1].endDate);
+        return parseLocalDate(mandatory?.endDate ?? dueDate);
     };
 
     return (
-        <div
+        <section
             className="summary-card"
+            data-testid={`summary-card-${parentIndex}`}
             style={{ borderColor: activeColor.accent }}
+            aria-label={parent.name}
         >
-            <div
-                className="summary-card-header"
-                style={{ background: activeColor.gradient }}
-            >
+            <div className="summary-card-header" style={{ background: activeColor.gradient }}>
                 <span className="summary-card-name">{parent.name}</span>
                 <button
+                    type="button"
                     className="btn-reset-custom"
                     onClick={() => onResetCustom(parentIndex)}
                     title={t.resetCustomTooltip}
+                    aria-label={t.resetCustomTooltip}
                 >
                     {t.btnResetCustom}
                 </button>
                 <button
+                    type="button"
                     className="btn-toggle-parent"
                     onClick={() => onToggleVisibility(parentIndex)}
                     title={isHidden ? t.showParent : t.hideParent}
+                    aria-label={isHidden ? t.showParent : t.hideParent}
+                    aria-pressed={isHidden}
                 >
-                    {isHidden ? '🙈' : '👁'}
+                    <span aria-hidden="true">{isHidden ? '🙈' : '👁'}</span>
                 </button>
             </div>
 
-            <div
-                className={`summary-card-body${isHidden ? ' summary-card-body--hidden' : ''}`}
-            >
-                {mandatoryPeriod && (
-                    <MandatoryPeriodRow
-                        period={mandatoryPeriod}
+            <div className={`summary-card-body${isHidden ? ' summary-card-body--hidden' : ''}`}>
+                {fixed.map((p) => (
+                    <FixedPeriodRow
+                        key={p.type}
+                        period={p}
                         activeColor={activeColor}
+                        lang={lang}
                         t={t}
                     />
-                )}
+                ))}
 
-                {nonMandatoryPeriods.map((p, idx) => {
-                    const pKey = getPeriodKey(p);
-                    if (p.isExtra) {
-                        return (
-                            <ExtraPeriodRow
-                                key={pKey}
-                                period={p}
-                                parentIndex={parentIndex}
-                                activeColor={activeColor}
-                                t={t}
-                                allPeriods={nonMandatoryPeriods}
-                                draggingKey={draggingKey}
-                                dragOverKey={dragOverKey}
-                                onDragStart={onDragStart}
-                                onDragOver={onDragOver}
-                                onDrop={onDrop}
-                                onDragEnd={onDragEnd}
-                                editingExtraDate={editingExtraDate}
-                                editExtraDateValue={editExtraDateValue}
-                                minEditExtraDate={minEditExtraDate}
-                                onOpenExtraDateEdit={(pIdx, itemId, currentDate) => {
-                                    const minDate = getMinStartDate(idx);
-                                    onOpenExtraDateEdit(pIdx, itemId, currentDate, minDate);
-                                }}
-                                onCommitExtraStartDate={onCommitExtraStartDate}
-                                onCancelExtraDateEdit={onCancelExtraDateEdit}
-                                onDelete={onDeleteExtra}
-                            />
-                        );
-                    }
-                    return (
-                        <PeriodRow
-                            key={pKey}
-                            period={p}
-                            parentIndex={parentIndex}
-                            activeColor={activeColor}
-                            lang={lang}
-                            t={t}
-                            allPeriods={nonMandatoryPeriods}
-                            editingPeriod={editingPeriod}
-                            editValue={editValue}
-                            editUnit={editUnit}
-                            inputRef={inputRef}
-                            onStartEditing={onStartEditing}
-                            onCommitEdit={onCommitEdit}
-                            onCancelEdit={onCancelEdit}
-                            onEditValueChange={onEditValueChange}
-                            onEditUnitChange={onEditUnitChange}
-                            editingStartDate={editingStartDate}
-                            editStartDateValue={editStartDateValue}
-                            minEditStartDate={minEditStartDate}
-                            onOpenStartDateEdit={(pIdx, periodKey, currentDate) => {
-                                const minDate = getMinStartDate(idx);
-                                onOpenStartDateEdit(pIdx, periodKey, currentDate, minDate);
-                            }}
-                            onCommitStartDate={onCommitStartDate}
-                            onCancelEditDate={onCancelEditDate}
-                            draggingKey={draggingKey}
-                            dragOverKey={dragOverKey}
-                            onDragStart={onDragStart}
-                            onDragOver={onDragOver}
-                            onDrop={onDrop}
-                            onDragEnd={onDragEnd}
-                        />
-                    );
-                })}
-
-                {addingForParent === parentIndex ? (
-                    <AddExtraForm
+                {editable.map((p, idx) => (
+                    <PeriodRow
+                        key={getPeriodKey(p)}
+                        period={p}
+                        parent={parent}
                         parentIndex={parentIndex}
-                        parentSchedule={parent}
+                        activeColor={activeColor}
+                        dueDate={dueDate}
+                        lang={lang}
                         t={t}
-                        newPresetKey={newPresetKey}
-                        newCustomName={newCustomName}
-                        newDurationValue={newDurationValue}
-                        newDurationUnit={newDurationUnit}
-                        onPresetChange={onPresetChange}
-                        onCustomNameChange={onCustomNameChange}
-                        onDurationValueChange={onDurationValueChange}
-                        onDurationUnitChange={onDurationUnitChange}
-                        onConfirm={onConfirmAddExtra}
-                        onCancel={onCancelAddForm}
+                        editor={editor}
+                        canMoveEarlier={idx > 0}
+                        canMoveLater={idx < editable.length - 1}
+                        minStartDate={minStartFor(idx)}
                     />
+                ))}
+
+                {editor.addingForParent === parentIndex ? (
+                    <AddExtraForm parentIndex={parentIndex} parent={parent} t={t} editor={editor} />
                 ) : (
                     <button
+                        type="button"
                         className="btn-add-extra"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenAddForm(parentIndex);
-                        }}
+                        onClick={() => editor.openAddForm(parentIndex)}
+                        data-testid="add-period-btn"
                     >
                         {t.btnAddPeriod}
                     </button>
                 )}
 
-                <WorkTimeline periods={parent.periods} t={t} />
+                <WorkTimeline periods={parent.periods} lang={lang} t={t} />
             </div>
-        </div>
+        </section>
     );
 }

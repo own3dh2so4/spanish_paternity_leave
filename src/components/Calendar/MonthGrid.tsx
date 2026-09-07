@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import DayCell from './DayCell';
-import { DAY_NAMES, MONTH_NAMES } from '../../constants';
-import { formatDateKey } from '../../utils/leaveCalculator';
 import type { ColorPalette, DateMap } from '../../types';
+import type { TranslationKeys } from '../../i18n/en';
+import type { Language } from '../../i18n/LanguageContext';
+import { formatDateKey, formatMonthTitle, todayIso, weekdayNames } from '../../utils/dates';
 
 interface Props {
     year: number;
@@ -9,37 +11,37 @@ interface Props {
     dateMap: DateMap;
     birthDateKey: string;
     parentColors: ColorPalette[];
+    lang: Language;
+    t: TranslationKeys;
 }
 
-export default function MonthGrid({ year, month, dateMap, birthDateKey, parentColors }: Props) {
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const totalDays = lastDay.getDate();
+export default function MonthGrid({
+    year,
+    month,
+    dateMap,
+    birthDateKey,
+    parentColors,
+    lang,
+    t,
+}: Props) {
+    const dayNames = useMemo(() => weekdayNames(lang), [lang]);
+    const todayKey = todayIso();
 
-    // ISO week: Monday = 0, Sunday = 6
-    let startDow = firstDay.getDay() - 1;
-    if (startDow < 0) startDow = 6;
-
-    const today = new Date();
-    const todayKey = formatDateKey(today);
-
-    const cells: (Date | null)[] = [];
-
-    for (let i = 0; i < startDow; i++) {
-        cells.push(null);
-    }
-
-    for (let d = 1; d <= totalDays; d++) {
-        cells.push(new Date(year, month, d));
-    }
+    const cells = useMemo(() => {
+        const first = new Date(year, month, 1);
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const leading = (first.getDay() + 6) % 7;
+        const result: (Date | null)[] = Array.from({ length: leading }, () => null);
+        for (let d = 1; d <= totalDays; d++) result.push(new Date(year, month, d));
+        while (result.length % 7 !== 0) result.push(null);
+        return result;
+    }, [year, month]);
 
     return (
-        <div className="month-grid">
-            <h3 className="month-title">
-                {MONTH_NAMES[month]} {year}
-            </h3>
-            <div className="day-names">
-                {DAY_NAMES.map((name) => (
+        <section className="month-grid" aria-label={formatMonthTitle(year, month, lang)}>
+            <h3 className="month-title">{formatMonthTitle(year, month, lang)}</h3>
+            <div className="day-names" aria-hidden="true">
+                {dayNames.map((name) => (
                     <div key={name} className="day-name">
                         {name}
                     </div>
@@ -47,9 +49,8 @@ export default function MonthGrid({ year, month, dateMap, birthDateKey, parentCo
             </div>
             <div className="days-grid">
                 {cells.map((day, index) => {
-                    if (!day) {
-                        return <DayCell key={`empty-${index}`} day={null} />;
-                    }
+                    if (!day)
+                        return <DayCell key={`empty-${index}`} day={null} lang={lang} t={t} />;
                     const dateKey = formatDateKey(day);
                     return (
                         <DayCell
@@ -58,12 +59,15 @@ export default function MonthGrid({ year, month, dateMap, birthDateKey, parentCo
                             dateKey={dateKey}
                             entries={dateMap[dateKey] ?? null}
                             isToday={dateKey === todayKey}
-                            birthDateKey={birthDateKey}
+                            isBirthDay={dateKey === birthDateKey}
+                            column={index % 7}
                             parentColors={parentColors}
+                            lang={lang}
+                            t={t}
                         />
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 }

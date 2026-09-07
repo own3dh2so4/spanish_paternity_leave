@@ -2,19 +2,19 @@ import './Wizard.css';
 
 interface Props {
     currentStep: number;
-    totalSteps: number;
-    stepLabels: string[];
+    steps: { id: string; label: string }[];
 }
 
-export default function ProgressBar({ currentStep, totalSteps, stepLabels }: Props) {
+export default function ProgressBar({ currentStep, steps }: Props) {
     return (
-        <div className="progress-bar">
-            {stepLabels.map((label, index) => (
-                <div
-                    key={label}
+        <ol className="progress-bar">
+            {steps.map((s, index) => (
+                <li
+                    key={s.id}
+                    aria-current={index === currentStep ? 'step' : undefined}
                     className={`progress-step ${index < currentStep ? 'completed' : ''} ${index === currentStep ? 'active' : ''}`}
                 >
-                    <div className="step-indicator">
+                    <div className="step-indicator" aria-hidden="true">
                         {index < currentStep ? (
                             <svg
                                 width="14"
@@ -30,10 +30,12 @@ export default function ProgressBar({ currentStep, totalSteps, stepLabels }: Pro
                             <span>{index + 1}</span>
                         )}
                     </div>
-                    <span className="step-label">{label}</span>
-                    {index < totalSteps - 1 && <div className="step-connector" />}
-                </div>
+                    <span className="step-label">{s.label}</span>
+                    {index < steps.length - 1 && (
+                        <div className="step-connector" aria-hidden="true" />
+                    )}
+                </li>
             ))}
-        </div>
+        </ol>
     );
 }

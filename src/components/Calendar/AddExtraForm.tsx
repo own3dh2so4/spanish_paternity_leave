@@ -1,79 +1,58 @@
-import type { ComputedParentSchedule } from '../../types';
-import {
-    EXTRA_PRESETS,
-    getRemainingFlexWeeks,
-} from '../../utils/calendarHelpers';
+import type { ComputedParentSchedule, ExtraPresetKey } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
+import type { ScheduleEditor } from '../../hooks/useScheduleEditor';
+import { EXTRA_PRESETS } from '../../utils/calendarHelpers';
+import { getRemainingFlexWeeks } from '../../utils/leaveLaw';
 
 interface Props {
     parentIndex: number;
-    parentSchedule: ComputedParentSchedule;
+    parent: ComputedParentSchedule;
     t: TranslationKeys;
-    // Form state
-    newPresetKey: string;
-    newCustomName: string;
-    newDurationValue: number;
-    newDurationUnit: 'days' | 'weeks';
-    onPresetChange: (key: string, parentSchedule: ComputedParentSchedule) => void;
-    onCustomNameChange: (v: string) => void;
-    onDurationValueChange: (v: number) => void;
-    onDurationUnitChange: (u: 'days' | 'weeks') => void;
-    onConfirm: (parentIndex: number) => void;
-    onCancel: () => void;
+    editor: ScheduleEditor;
 }
 
-export default function AddExtraForm({
-    parentIndex,
-    parentSchedule,
-    t,
-    newPresetKey,
-    newCustomName,
-    newDurationValue,
-    newDurationUnit,
-    onPresetChange,
-    onCustomNameChange,
-    onDurationValueChange,
-    onDurationUnitChange,
-    onConfirm,
-    onCancel,
-}: Props) {
-    const remaining = getRemainingFlexWeeks(parentSchedule);
-    const isFlexExtra = newPresetKey === 'flexible-extra';
-    const maxWeeks = isFlexExtra ? remaining : undefined;
+const MAX_FREE_DURATION = 999;
+
+export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) {
+    const { form } = editor;
+    const remaining = getRemainingFlexWeeks(parent);
+    const isFlexExtra = form.presetKey === 'flexible-extra';
+    const max = isFlexExtra ? remaining : MAX_FREE_DURATION;
+
+    const submitOnEnter = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') editor.confirmAdd(parentIndex);
+        if (e.key === 'Escape') editor.closeAddForm();
+    };
 
     return (
-        <div className="add-extra-form" onClick={(e) => e.stopPropagation()}>
+        <div className="add-extra-form" data-testid="add-extra-form">
             <select
                 className="add-extra-preset-select"
-                value={newPresetKey}
-                onChange={(e) => onPresetChange(e.target.value, parentSchedule)}
+                aria-label={t.btnAddPeriod}
+                value={form.presetKey}
+                onChange={(e) => editor.setPreset(e.target.value as ExtraPresetKey, parent)}
             >
                 {EXTRA_PRESETS.map((p) => (
                     <option key={p.key} value={p.key}>
-                        {p.key === 'vacation' ? '🏖️ ' : ''}
-                        {p.key === 'unpaid' ? '📋 ' : ''}
-                        {p.key === 'gradual' ? '🔄 ' : ''}
-                        {p.key === 'custom' ? '✏️ ' : ''}
-                        {t[p.labelKey] as string}
+                        {p.emoji} {t[p.labelKey] as string}
                     </option>
                 ))}
                 {remaining > 0 && (
-                    <option value="flexible-extra">{t.flexibleExtra(remaining)}</option>
+                    <option value="flexible-extra">{t.flexibleExtraOption(remaining)}</option>
                 )}
             </select>
 
-            {newPresetKey === 'custom' && (
+            {form.presetKey === 'custom' && (
                 <input
                     className="add-extra-name-input"
                     type="text"
-                    value={newCustomName}
-                    onChange={(e) => onCustomNameChange(e.target.value)}
+                    maxLength={40}
+                    value={form.customName}
+                    onChange={(e) => editor.setCustomName(e.target.value)}
                     placeholder={t.periodNamePlaceholder}
+                    aria-label={t.periodNamePlaceholder}
                     autoFocus
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') onConfirm(parentIndex);
-                        if (e.key === 'Escape') onCancel();
-                    }}
+                    onKeyDown={submitOnEnter}
                 />
             )}
 
@@ -82,43 +61,44 @@ export default function AddExtraForm({
                     className="period-edit-input add-extra-weeks-input"
                     type="number"
                     min="1"
-                    max={maxWeeks}
+                    max={max}
                     step="1"
-                    value={newDurationValue}
+                    aria-label={isFlexExtra ? t.unitWeeksShort : t.unitDays}
+                    value={form.durationValue}
                     onChange={(e) => {
-                        const raw = parseInt(e.target.value) || 1;
-                        onDurationValueChange(
-                            maxWeeks !== undefined
-                                ? Math.min(Math.max(1, raw), maxWeeks)
-                                : Math.max(1, raw),
-                        );
+                        const raw = Number.parseInt(e.target.value, 10);
+                        const value = Number.isFinite(raw) ? raw : 1;
+                        editor.setDurationValue(Math.min(Math.max(1, value), max));
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') onConfirm(parentIndex);
-                        if (e.key === 'Escape') onCancel();
-                    }}
+                    onKeyDown={submitOnEnter}
                 />
                 <select
                     className="add-extra-unit-select"
-                    value={newDurationUnit}
+                    aria-label={t.unitWeeksShort}
+                    value={isFlexExtra ? 'weeks' : form.durationUnit}
                     disabled={isFlexExtra}
-                    onChange={(e) =>
-                        onDurationUnitChange(e.target.value as 'days' | 'weeks')
-                    }
+                    onChange={(e) => editor.setDurationUnit(e.target.value as 'days' | 'weeks')}
                 >
-                    {!isFlexExtra && (
-                        <option value="days">{t.unitDays}</option>
-                    )}
+                    <option value="days">{t.unitDays}</option>
                     <option value="weeks">{t.unitWeeksShort}</option>
                 </select>
                 <button
+                    type="button"
                     className="add-extra-confirm"
                     title={t.add}
-                    onClick={() => onConfirm(parentIndex)}
+                    aria-label={t.add}
+                    onClick={() => editor.confirmAdd(parentIndex)}
+                    data-testid="add-extra-confirm"
                 >
                     ✓
                 </button>
-                <button className="add-extra-cancel" title={t.cancel} onClick={onCancel}>
+                <button
+                    type="button"
+                    className="add-extra-cancel"
+                    title={t.cancel}
+                    aria-label={t.cancel}
+                    onClick={editor.closeAddForm}
+                >
                     ✕
                 </button>
             </div>

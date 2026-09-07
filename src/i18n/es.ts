@@ -1,154 +1,195 @@
 import type { TranslationKeys } from './en';
 
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
 export const es: TranslationKeys = {
-    // ── Wizard ──────────────────────────────────────────────────────────────
-    wizardTitle: '🇪🇸 Planificador de Baja Parental',
-    wizardSubtitle: 'Planifica tu baja por paternidad/maternidad en España',
+    wizardTitle: '🇪🇸 Planificador de Permiso Parental',
+    wizardSubtitle: 'Planifica el permiso por nacimiento y cuidado de menor',
     back: '← Atrás',
     next: 'Siguiente →',
     calculate: 'Calcular →',
+    editWarning: 'Al recalcular se perderán los ajustes manuales que hayas hecho en el calendario.',
+    invalidShareLink:
+        'El enlace compartido no es válido o se creó con una versión anterior del planificador.',
 
-    // Step labels
     stepDueDate: 'Fecha parto',
-    stepParents: 'Progenitores',
+    stepParents: 'Familia',
     stepNames: 'Nombres',
-    stepLeaveMode: 'Modo de baja',
-    stepWhoStarts: 'Quién empieza',
-    stepChildcare: 'Cuidado hijo',
+    stepDetails: 'Detalles',
+    stepLeaveMode: 'Modo',
+    stepWhoStarts: 'Quién sigue',
 
-    // StepDueDate
     dueDateTitle: '¿Cuál es la fecha prevista de parto?',
-    dueDateDescription: 'Introduce la fecha de parto prevista. Puedes modificarla más tarde desde la vista del calendario.',
+    dueDateDescription:
+        'Introduce la fecha prevista de parto o, si el bebé ya ha nacido, la fecha de nacimiento. Podrás cambiarla desde el calendario.',
     dueDatePlaceholder: 'Selecciona una fecha…',
-    dueDateLabel: 'Fecha de parto',
+    oldRegimeWarning:
+        'Los nacimientos anteriores al 31 de julio de 2025 se rigen por la normativa anterior (16 semanas). Este planificador sólo modela el régimen vigente.',
 
-    // StepParentCount
-    parentCountTitle: '¿Cuántos progenitores van a disfrutar la baja?',
-    parentCountOne: '1 progenitor',
-    parentCountTwo: '2 progenitores',
+    parentCountTitle: '¿Qué tipo de familia sois?',
+    parentCountTwo: 'Dos progenitores',
+    parentCountTwoDesc: (weeks) => `${weeks} semanas cada uno`,
+    parentCountSingle: 'Familia monoparental',
+    parentCountSingleDesc: (weeks) => `Una única persona progenitora, ${weeks} semanas en total`,
 
-    // StepNames
-    namesTitle: '¿Cómo se llaman los progenitores?',
-    namesDescription: 'Introduce los nombres y elige un color para cada progenitor.',
-    namePlaceholder: (n: number) => `Nombre progenitor ${n}`,
-    colorLabel: 'Color',
+    namesTitle: '¿Cómo os llamáis?',
+    namesDescription: 'Introduce un nombre y elige un color para cada progenitor.',
+    namePlaceholder: (n) => `Nombre del progenitor ${n}`,
+    colorOption: (name) => `Color ${name}`,
 
-    // StepLeaveMode
-    leaveModeTitle: '¿Cómo queréis organizar la baja?',
-    leaveModeDescription: 'Elige si ambos progenitores disfrutan la baja al mismo tiempo o la escalonan para maximizar la cobertura total.',
+    detailsTitle: 'Algunos detalles',
+    detailsDescription:
+        'Afectan al número de semanas. Los valores por defecto cubren el caso más habitual.',
+    babiesLabel: 'Bebés',
+    babiesOption: (n) => (n === 1 ? 'Uno' : n === 2 ? 'Gemelos' : 'Trillizos'),
+    disabilityLabel: 'Hijo con discapacidad',
+    disabilityHint: 'Añade una semana más por progenitor (dos en familias monoparentales).',
+    motherLabel: 'Madre biológica',
+    motherHint: 'Sólo la madre biológica puede empezar parte de su permiso antes del parto.',
+    motherNone: 'Ninguna / no aplica',
+    anticipatedLabel: 'Semanas antes de la fecha prevista de parto',
+    anticipatedHint:
+        'Puede adelantar hasta 4 semanas flexibles antes de la fecha prevista de parto.',
+    allowanceSummary: (mandatory, flexible, extra) =>
+        `Por progenitor: ${mandatory} semanas obligatorias + ${flexible} flexibles (hasta los 12 meses) + ${extra} hasta los 8 años = ${mandatory + flexible + extra} semanas.`,
+
+    leaveModeTitle: '¿Cómo queréis organizar el permiso?',
+    leaveModeDescription:
+        'Disfrutarlo a la vez o escalonarlo para que siempre haya un progenitor en casa.',
     modeTogether: 'Juntos',
-    modeTogetherDesc: 'Ambos progenitores disfrutan toda la baja al mismo tiempo. Estaréis en casa a la vez pero volveréis al trabajo antes.',
-    modeOptimized: 'Optimizado',
-    modeOptimizedDesc: 'Escalonar la baja flexible para que siempre haya un progenitor en casa. Maximiza el tiempo total con el bebé.',
+    modeTogetherDesc:
+        'Ambos disfrutan todo el permiso al mismo tiempo. Estaréis en casa a la vez, pero volveréis antes al trabajo.',
+    modeOptimized: 'Escalonado',
+    modeOptimizedDesc:
+        'Tras las 6 semanas obligatorias, uno continúa y el otro vuelve al trabajo y toma sus semanas más tarde. Maximiza el tiempo con el bebé.',
 
-    // StepFirstParent
-    firstParentTitle: '¿Quién empieza primero la baja flexible?',
-    firstParentDescription: 'En el modo optimizado, un progenitor termina la baja obligatoria y comienza la baja flexible mientras el otro todavía está en la baja obligatoria.',
+    firstParentTitle: '¿Quién continúa tras las semanas obligatorias?',
+    firstParentDescription:
+        'El otro progenitor vuelve al trabajo tras las 6 semanas obligatorias y disfruta el resto cuando el primero se reincorpora.',
+    hintFirstParent: '🏠 Se queda en casa primero',
+    hintSecondParent: '🏢 Vuelve al trabajo, disfruta el permiso después',
 
-    // StepCuidado
-    cuidadoTitle: 'Permiso de cuidado del hijo (opcional)',
-    cuidadoDescription: 'La ley española reconoce hasta 8 semanas de permiso de cuidado del hijo por progenitor para menores de 8 años. Las primeras 2 semanas son retribuidas.',
-    cuidadoCheck: (name: string) => `${name} disfrutará del permiso de cuidado`,
-    cuidadoWeeks: 'Semanas',
-    cuidadoWeeksHint: (paid: number) => `Las primeras ${paid} semanas son retribuidas, el resto no.`,
-    cuidadoMax: (max: number) => `Máximo ${max} semanas`,
-
-    // ── Calendar ─────────────────────────────────────────────────────────────
-    scheduleTitle: '🗓️ Calendario de bajas',
+    scheduleTitle: '🗓️ Calendario del permiso',
     dueDate: 'Fecha de parto',
     mode: 'Modo',
     modeLabelTogether: 'Juntos',
-    modeLabelOptimized: 'Optimizado',
+    modeLabelOptimized: 'Escalonado',
     btnEdit: '✏️ Editar',
     btnReset: '↺ Reiniciar',
-    btnPrint: '🖨️ Imprimir',
     btnResetCustom: '↺ Reiniciar',
     resetTooltip: 'Empezar de nuevo',
-    resetCustomTooltip: 'Restablecer días de baja estándar',
+    resetCustomTooltip: 'Restablecer el calendario estándar de este progenitor',
     btnAddPeriod: '+ Añadir período',
     add: 'Añadir',
     cancel: 'Cancelar',
     btnShare: '🔗 Compartir',
     shareSuccess: '¡Enlace copiado al portapapeles!',
-    shareError: 'Error al copiar el enlace',
+    shareError: 'No se pudo copiar el enlace',
+    legalDisclaimer:
+        'Herramienta de planificación basada en el art. 48.4 del Estatuto de los Trabajadores (RDL 9/2025). No es asesoramiento legal: confirma las fechas con tu empresa y con el INSS.',
 
-    // Summary card
     requiredByLaw: '🔒 Obligatorio por ley',
-    requiredByLawTooltip: 'Esta baja es obligatoria por ley española y no puede modificarse',
+    requiredByLawTooltip:
+        'Seis semanas ininterrumpidas a jornada completa desde el día del parto. No se pueden modificar.',
+    anticipatedBadge: 'Antes del parto',
+    anticipatedTooltip:
+        'Semanas flexibles que la madre biológica adelanta antes de la fecha prevista de parto. Se cambian desde el asistente.',
     dragToReorder: 'Arrastra para reordenar',
-    clickToEdit: 'Clic para editar',
-    clickToEditStartDate: 'Clic para editar la fecha de inicio',
-    shifted: 'desplazado',
-    custom: 'personalizado',
+    moveEarlier: 'Adelantar',
+    moveLater: 'Retrasar',
+    clickToEdit: 'Editar duración',
+    clickToEditStartDate: 'Editar fecha de inicio',
     remove: 'Eliminar',
+    warnAfterFirstBirthday:
+        'Las semanas flexibles deben disfrutarse antes de que el menor cumpla 12 meses.',
+    warnAfterEighthBirthday: 'Estas semanas deben disfrutarse antes de que el menor cumpla 8 años.',
+    lactanciaEstimateHint:
+        'Estimación: una hora por día laborable hasta los 9 meses, acumulada en jornadas completas. Tu convenio puede establecer otra cosa.',
 
-    // Work timeline
     workTimeline: '🏢 Calendario laboral',
     stopsWorking: 'Deja de trabajar',
-    returnsToWork: 'Vuelta al trabajo',
-    returnsToWorkFinal: 'Vuelta al trabajo (definitiva)',
-    returnsToWorkOn: 'Vuelta al trabajo el',
+    returnsToWork: 'Vuelve al trabajo',
+    returnsToWorkFinal: 'Vuelve al trabajo (definitiva)',
 
-    // Add-period form
     periodNamePlaceholder: 'Nombre del período…',
 
-    // Leave type labels
-    mandatoryLeave: (weeks: number) => `Baja obligatoria (${weeks} semanas)`,
-    flexibleLeave: (weeks: number) => `Baja flexible (${weeks} semanas)`,
-    accumulatedLactancia: (val: number | string, unit: string) => {
-        const isSingular = Number(val) === 1;
-        if (unit === 'days') return `Lactancia acumulada (${val} día${isSingular ? '' : 's'})`;
-        if (unit === 'weeks') return `Lactancia acumulada (${val} semana${isSingular ? '' : 's'})`;
-        return `Lactancia acumulada (${val} mes${isSingular ? '' : 'es'})`;
+    anticipatedLeave: (weeks) => `Antes del parto (${weeks} ${plural(weeks, 'semana', 'semanas')})`,
+    mandatoryLeave: (weeks) => `Permiso obligatorio (${weeks} semanas)`,
+    flexibleLeave: (weeks) => `Permiso flexible (${weeks} ${plural(weeks, 'semana', 'semanas')})`,
+    extraUntil8Leave: (weeks) =>
+        `Semanas adicionales hasta los 8 años (${weeks} ${plural(weeks, 'semana', 'semanas')})`,
+    accumulatedLactancia: (val, unit) => {
+        const n = Number(val);
+        if (unit === 'weeks')
+            return `Lactancia acumulada (${val} ${plural(n, 'semana', 'semanas')})`;
+        if (unit === 'months') return `Lactancia acumulada (${val} ${plural(n, 'mes', 'meses')})`;
+        return `Lactancia acumulada (${val} ${plural(n, 'día', 'días')})`;
     },
-    childcareLeavePaidUnpaid: (paid: number, unpaid: number) => `Permiso de cuidado (${paid} sem. retribuidas + ${unpaid} sem. no retribuidas)`,
-    childcareLeavePaid: (weeks: number) => `Permiso de cuidado (${weeks} semana${weeks !== 1 ? 's' : ''} retribuida${weeks !== 1 ? 's' : ''})`,
-    childcareLeave: 'Permiso de cuidado del hijo',
     extraPeriod: 'Período adicional',
-    flexibleExtra: (rem: number) => `📅 Baja flexible (quedan ${rem} sem.)`,
+    flexibleExtraLabel: (weeks) =>
+        `📅 Permiso flexible, bloque adicional (${weeks} ${plural(weeks, 'semana', 'semanas')})`,
+    flexibleExtraOption: (remaining) =>
+        `📅 Permiso flexible (quedan ${remaining} ${plural(remaining, 'semana', 'semanas')})`,
 
-    // Legend
-    legend: 'Leyenda',
     birthDate: 'Fecha de nacimiento',
-    parentMandatory: (name: string) => `${name} — Obligatoria`,
-    parentFlexible: (name: string) => `${name} — Flexible`,
-    parentLactancia: (name: string) => `${name} — Lactancia`,
-    parentChildcare: (name: string) => `${name} — Cuidado hijo`,
-    parentExtra: (name: string) => `${name} — Períodos adicionales`,
+    today: 'Hoy',
+    parentMandatory: (name) => `${name} — Obligatorio`,
+    parentFlexible: (name) => `${name} — Flexible`,
+    parentLactancia: (name) => `${name} — Lactancia`,
+    parentExtraUntil8: (name) => `${name} — Semanas hasta los 8 años`,
+    parentExtra: (name) => `${name} — Períodos adicionales`,
 
-    // Hide parent toggle
-    hideParent: 'Ocultar datos del progenitor',
-    showParent: 'Mostrar datos del progenitor',
+    hideParent: 'Ocultar este progenitor',
+    showParent: 'Mostrar este progenitor',
 
-    // Datepicker locale
     datePickerLocale: 'es',
 
-    // Tooltips & A11y
-    tooltipChangeDueDate: 'Haz clic para cambiar la fecha de parto',
-    tooltipSwitchLang: 'Cambiar a inglés',
-    tooltipSwitchTheme: (theme: string) => `Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`,
+    tooltipChangeDueDate: 'Cambiar la fecha de parto',
+    tooltipSwitchLang: 'Switch to English',
+    tooltipSwitchTheme: (theme) => `Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`,
 
-    // Units
     unitDays: 'días',
     unitWeeksShort: 'sem.',
+    unitMonths: 'meses',
 
-    // Presets
-    presetVacation: 'vacaciones',
-    presetUnpaid: 'baja no retribuida',
-    presetGradual: 'regreso gradual',
-    presetCustom: 'personalizado',
+    presetVacation: 'Vacaciones',
+    presetParental: 'Permiso parental (no retribuido, hasta 8 semanas)',
+    presetUnpaid: 'Permiso no retribuido',
+    presetCustom: 'Personalizado',
 
-    // Wizard hints
-    hintFirstParent: '🏠 Se queda en casa primero — toma la baja flexible tras la obligatoria',
-    hintSecondParent: '🏢 Vuelve al trabajo tras la obligatoria, toma la baja flexible más tarde',
-
-    // Cuidado
-    cuidadoPaidBadge: 'retribuido',
-    cuidadoUnpaidBadge: 'no retribuido',
     yes: 'Sí',
     no: 'No',
-    cuidadoWeekPaidTooltip: (w: number) => `Semana ${w} – retribuida`,
-    cuidadoWeekUnpaidTooltip: (w: number) => `Semana ${w} – no retribuida`,
-    cuidadoFullPaid: (w: number) => `${w} semana${w !== 1 ? 's' : ''} — totalmente retribuida`,
-    cuidadoPaidUnpaid: (p: number, u: number) => `${p} sem. retribuidas + ${u} semana${u !== 1 ? 's' : ''} no retribuida`,
+
+    errorTitle: 'Algo ha salido mal',
+    errorReset: 'Reiniciar la aplicación',
+
+    regimeLabel: 'Régimen laboral',
+    regimeOption: (regime) =>
+        regime === 'et'
+            ? 'Empresa privada (Estatuto de los Trabajadores)'
+            : regime === 'ebep'
+              ? 'Empleado público (EBEP)'
+              : 'SERMAS (Servicio Madrileño de Salud)',
+    regimeHint: (regime) =>
+        regime === 'et'
+            ? 'Lactancia hasta los 9 meses. Si tu convenio añade días retribuidos, indícalos abajo.'
+            : regime === 'ebep'
+              ? 'Lactancia hasta los 12 meses. No se pueden adelantar semanas antes del parto.'
+              : 'Pacto SERMAS: permiso retribuido desde la semana 37, 10 días retribuidos adicionales para la madre biológica y 30 días naturales de lactancia acumulada (hasta los 12 meses).',
+    convenioDaysLabel: 'Días retribuidos adicionales de tu empresa o convenio',
+    convenioDaysHint:
+        'Días naturales que se añaden justo después del permiso de nacimiento. Deja 0 si no tienes.',
+    anticipatedNotAvailable: 'Los empleados públicos no pueden iniciar el permiso antes del parto.',
+    gestationLeave: (weeks) =>
+        `Permiso retribuido antes del parto (${weeks} ${plural(weeks, 'semana', 'semanas')})`,
+    gestationBadge: 'Desde la semana 37',
+    gestationTooltip:
+        'Permiso retribuido del SERMAS desde la semana 37 de gestación (35 en parto múltiple) más la IT especial desde la semana 39. No consume semanas del permiso.',
+    convenioLeave: (days) =>
+        `Días retribuidos adicionales (${days} ${plural(days, 'día', 'días')})`,
+    accumulatedLactanciaNatural: (days) =>
+        `Lactancia acumulada (${days} ${plural(days, 'día natural', 'días naturales')})`,
+    lactanciaEstimateHintPublic:
+        'Estimación: una hora por día laborable hasta los 12 meses, acumulada en jornadas completas. Comprueba la regla de tu administración.',
+    parentConvenio: (name) => `${name} — Días retribuidos adicionales`,
 };

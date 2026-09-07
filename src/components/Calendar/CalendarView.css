@@ -52,7 +52,7 @@
 .header-left h1 {
     font-size: 1.75rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #818CF8, #F472B6);
+    background: linear-gradient(135deg, #818cf8, #f472b6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -105,7 +105,7 @@
     transition: box-shadow 0.25s ease;
 }
 
-[data-theme="light"] .summary-card {
+[data-theme='light'] .summary-card {
     box-shadow: var(--shadow-card);
 }
 
@@ -130,7 +130,10 @@
     gap: 0.75rem;
     overflow: hidden;
     max-height: 9999px;
-    transition: max-height 0.35s ease, padding 0.25s ease, opacity 0.25s ease;
+    transition:
+        max-height 0.35s ease,
+        padding 0.25s ease,
+        opacity 0.25s ease;
     opacity: 1;
 }
 
@@ -149,7 +152,9 @@
     font-size: 1rem;
     padding: 0 2px;
     opacity: 0.75;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
     line-height: 1;
     color: white;
     margin-left: auto;
@@ -264,11 +269,13 @@
 
 /* Editable period rows */
 .period-row-editable {
-    cursor: pointer;
+    cursor: default;
     border-radius: 8px;
     padding: 4px 6px;
     margin: -4px -6px;
-    transition: background 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        background 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .period-row-editable:hover {
@@ -303,7 +310,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     background: rgba(99, 102, 241, 0.12);
-    color: #818CF8;
+    color: #818cf8;
     border: 1px solid rgba(99, 102, 241, 0.25);
     border-radius: 4px;
     padding: 1px 5px;
@@ -333,7 +340,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     background: rgba(245, 158, 11, 0.18);
-    color: #F59E0B;
+    color: #f59e0b;
     border: 1px solid rgba(245, 158, 11, 0.3);
     border-radius: 4px;
     padding: 1px 5px;
@@ -359,7 +366,9 @@
     font-weight: 600;
     font-family: 'Inter', sans-serif;
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
     appearance: textfield;
     -moz-appearance: textfield;
 }
@@ -401,7 +410,7 @@
 .btn-reset-custom {
     background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.35);
-    color: #F59E0B;
+    color: #f59e0b;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -459,7 +468,7 @@
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: #10B981;
+    background: #10b981;
     margin-top: 0.35rem;
     flex-shrink: 0;
 }
@@ -484,8 +493,8 @@
 
 .work-timeline-date {
     font-weight: 600;
-    color: #10B981;
-    white-space: nowrap;
+    color: #10b981;
+    text-align: right;
 }
 
 /* Legend */
@@ -562,7 +571,9 @@
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
     padding: 1.25rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .month-grid:hover {
@@ -637,12 +648,12 @@
 }
 
 .day-cell.today {
-    outline: 2px solid #F59E0B;
+    outline: 2px solid #f59e0b;
     outline-offset: -1px;
 }
 
 .day-cell.birthday {
-    outline: 2px solid #10B981;
+    outline: 2px solid #10b981;
     outline-offset: -1px;
 }
 
@@ -655,6 +666,7 @@
 
 /* Rich Tooltip */
 .day-tooltip {
+    display: none;
     position: absolute;
     bottom: calc(100% + 8px);
     left: 50%;
@@ -665,10 +677,13 @@
     border: 1px solid var(--border-input);
     border-radius: 12px;
     padding: 0;
-    min-width: 220px;
+    min-width: 180px;
+    max-width: 260px;
     pointer-events: none;
     z-index: 100;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--border-subtle);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 0 1px var(--border-subtle);
     animation: tooltipFadeIn 0.15s ease;
     overflow: hidden;
 }
@@ -693,13 +708,12 @@
     border-bottom: 1px solid var(--border-subtle);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    white-space: nowrap;
 }
 
 .tooltip-birth {
     padding: 0.4rem 0.85rem;
     font-size: 0.75rem;
-    color: #10B981;
+    color: #10b981;
     font-weight: 600;
     border-bottom: 1px solid var(--border-subtle);
 }
@@ -732,13 +746,11 @@
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--text-primary);
-    white-space: nowrap;
 }
 
 .tooltip-type {
     font-size: 0.7rem;
     color: var(--text-muted);
-    white-space: nowrap;
 }
 
 /* ── Extra period rows ─────────────────────────────────────────────────────── */
@@ -764,7 +776,7 @@
     padding: 0.1rem 0.4rem;
     border-radius: 999px;
     background: rgba(251, 146, 60, 0.18);
-    color: #FB923C;
+    color: #fb923c;
     letter-spacing: 0.02em;
 }
 
@@ -781,13 +793,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
     margin-left: auto;
 }
 
 .btn-delete-extra:hover {
     background: rgba(239, 68, 68, 0.15);
-    color: #EF4444;
+    color: #ef4444;
 }
 
 /* ── Add-period button ─────────────────────────────────────────────────────── */
@@ -805,12 +819,15 @@
     color: var(--text-muted);
     font-size: 0.8rem;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    transition:
+        border-color 0.15s,
+        color 0.15s,
+        background 0.15s;
 }
 
 .btn-add-extra:hover {
-    border-color: #FB923C;
-    color: #FB923C;
+    border-color: #fb923c;
+    color: #fb923c;
     background: rgba(251, 146, 60, 0.06);
 }
 
@@ -839,11 +856,13 @@
     cursor: pointer;
     outline: none;
     appearance: auto;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
 }
 
 .add-extra-preset-select:focus {
-    border-color: #FB923C;
+    border-color: #fb923c;
     box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
 }
 
@@ -858,12 +877,14 @@
     font-family: 'Inter', sans-serif;
     box-sizing: border-box;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
 }
 
 .add-extra-name-input:focus {
     outline: none;
-    border-color: #FB923C;
+    border-color: #fb923c;
     box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
 }
 
@@ -892,7 +913,7 @@
 }
 
 .add-extra-unit-select:focus {
-    border-color: #FB923C;
+    border-color: #fb923c;
 }
 
 .add-extra-confirm {
@@ -908,7 +929,7 @@
 }
 
 .add-extra-confirm:hover {
-    background: #EA7C1E;
+    background: #ea7c1e;
 }
 
 .add-extra-cancel {
@@ -919,12 +940,14 @@
     color: var(--text-muted);
     font-size: 0.82rem;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
 }
 
 .add-extra-cancel:hover {
     background: rgba(239, 68, 68, 0.12);
-    color: #EF4444;
+    color: #ef4444;
 }
 
 /* Load more */
@@ -975,7 +998,9 @@
     border-color: var(--text-muted);
 }
 
-.dp-dark.react-datepicker .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+.dp-dark.react-datepicker
+    .react-datepicker__navigation:hover
+    .react-datepicker__navigation-icon::before {
     border-color: var(--text-primary);
 }
 
@@ -1037,6 +1062,46 @@
     }
 
     .months-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .calendar-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-toolbar {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .header-toolbar .btn,
+    .header-toolbar .btn-edit {
+        flex: 1 1 auto;
+        min-height: 44px;
+    }
+
+    .period-actions {
+        opacity: 1;
+    }
+
+    .period-drag-handle {
+        display: none;
+    }
+
+    .day-cell {
+        min-height: 40px;
+        font-size: 0.8rem;
+    }
+
+    .day-tooltip {
+        min-width: 150px;
+        max-width: 200px;
+    }
+
+    .legend-sections {
         grid-template-columns: 1fr;
     }
 }
@@ -1103,10 +1168,219 @@
     border: 1px solid var(--border-subtle);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     z-index: 9999;
-    animation: toastSlideDownFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1), toastFadeOut 0.3s ease 2.7s forwards;
+    animation: toastSlideDownFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     font-weight: 600;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+/* ── Header toolbar controls ──────────────────────────────────────────────── */
+
+.header-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.header-toolbar .header-controls {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.header-toolbar .btn-icon {
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--border-subtle);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.header-toolbar .btn-icon:hover {
+    background: var(--border-input);
+    color: var(--text-primary);
+}
+
+.header-due-date {
+    background: none;
+    border: none;
+    padding: 0 2px;
+    margin: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-bottom: 1px dashed var(--border-input);
+}
+
+.header-due-date:hover {
+    border-bottom-color: var(--text-primary);
+}
+
+/* ── Period row controls (buttons replace clickable spans) ─────────────────── */
+
+.period-type-btn,
+.period-dates-editable {
+    background: none;
+    border: none;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+}
+
+.period-type-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.period-type-btn:hover .period-edit-icon,
+.period-type-btn:focus-visible .period-edit-icon {
+    opacity: 0.7;
+}
+
+.period-dates-editable:focus-visible .period-date-edit-icon {
+    opacity: 0.6;
+}
+
+.period-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.period-hint,
+.period-warning {
+    font-size: 0.7rem;
+    line-height: 1.35;
+    margin-top: 2px;
+}
+
+.period-hint {
+    color: var(--text-muted);
+}
+
+.period-warning {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.period-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    align-self: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.summary-period:hover .period-actions,
+.summary-period:focus-within .period-actions {
+    opacity: 1;
+}
+
+.btn-period-move {
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+}
+
+.btn-period-move:hover:not(:disabled) {
+    background: var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.btn-period-move:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.btn-delete-extra {
+    margin-left: 0;
+}
+
+/* ── Day tooltip visibility ────────────────────────────────────────────────── */
+
+.day-cell:hover .day-tooltip,
+.day-cell:focus-visible .day-tooltip,
+.day-cell.tooltip-pinned .day-tooltip {
+    display: block;
+}
+
+button.day-cell {
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    width: 100%;
+}
+
+.day-tooltip--left {
+    left: 0;
+    transform: none;
+}
+
+.day-tooltip--right {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.day-cell:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 1px;
+    z-index: 10;
+}
+
+/* ── Footer, toast region, error boundary ─────────────────────────────────── */
+
+.legal-disclaimer {
+    margin: 2rem auto 0;
+    max-width: 720px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.toast-region {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.error-boundary {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
 }

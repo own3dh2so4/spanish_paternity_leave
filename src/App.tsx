@@ -4,53 +4,49 @@ import CalendarView from './components/Calendar/CalendarView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { STORAGE_KEY } from './constants';
-import { decompressWizardData } from './utils/shareUtils';
-import { computeSchedule } from './utils/calendarHelpers';
-import type { WizardData } from './types';
+import { decompressWizardData, validateWizardData } from './utils/shareUtils';
+import { withSchedule } from './utils/calendarHelpers';
+import type { WizardData, WizardInput } from './types';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { ThemeProvider } from './theme/ThemeContext';
 import './App.css';
 
+interface ShareResult {
+    data: WizardData | null;
+    hiddenParents: Set<number>;
+    invalid: boolean;
+}
+
+function readShareParam(): ShareResult {
+    const params = new URLSearchParams(window.location.search);
+    const shareParam = params.get('share');
+    if (!shareParam) return { data: null, hiddenParents: new Set(), invalid: false };
+
+    params.delete('share');
+    const query = params.toString();
+    window.history.replaceState(
+        {},
+        '',
+        `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
+    );
+
+    const payload = decompressWizardData(shareParam);
+    if (!payload) return { data: null, hiddenParents: new Set(), invalid: true };
+    return { data: payload.data, hiddenParents: new Set(payload.hiddenParents), invalid: false };
+}
+
 export default function App() {
-    // Initial hidden structure for when we first mount from a shared link
-    const [initialHidden, setInitialHidden] = useState<Set<number>>(new Set());
+    const [share] = useState(readShareParam);
 
-    // Run this synchronously once on mount before useLocalStorage initializes
-    useState(() => {
-        const params = new URLSearchParams(window.location.search);
-        const shareParam = params.get('share');
-        if (shareParam) {
-            const payload = decompressWizardData(shareParam);
-            if (payload) {
-                // Overwrite localStorage immediately so useLocalStorage picks it up
-                try {
-                    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.data));
-                } catch {
-                    // Ignore storage errors if localStorage is disabled or full
-                }
-                setInitialHidden(new Set(payload.hiddenParents));
-                window.history.replaceState({}, '', window.location.pathname);
-            }
-        }
-        return null;
+    const [savedData, setSavedData] = useLocalStorage<WizardData | null>(STORAGE_KEY, null, {
+        validate: validateWizardData,
+        override: share.data ?? undefined,
     });
+    const [showCalendar, setShowCalendar] = useState(savedData !== null);
 
-    const [savedData, setSavedData] = useLocalStorage<WizardData | null>(STORAGE_KEY, null);
-    const [showCalendar, setShowCalendar] = useState(!!savedData);
-
-    const handleWizardComplete = (data: WizardData) => {
-        const withSchedule = { ...data, schedule: computeSchedule(data) };
-        setSavedData(withSchedule);
+    const handleWizardComplete = (input: WizardInput) => {
+        setSavedData(withSchedule(input));
         setShowCalendar(true);
-    };
-
-    const handleEdit = () => {
-        setShowCalendar(false);
-    };
-
-    const handleReset = () => {
-        setSavedData(null);
-        setShowCalendar(false);
     };
 
     return (
@@ -63,13 +59,20 @@ export default function App() {
                         {showCalendar && savedData ? (
                             <CalendarView
                                 data={savedData}
-                                onEdit={handleEdit}
-                                onReset={handleReset}
+                                onEdit={() => setShowCalendar(false)}
+                                onReset={() => {
+                                    setSavedData(null);
+                                    setShowCalendar(false);
+                                }}
                                 onUpdateData={setSavedData}
-                                initialHidden={initialHidden}
+                                initialHidden={share.hiddenParents}
                             />
                         ) : (
-                            <Wizard onComplete={handleWizardComplete} initialData={savedData} />
+                            <Wizard
+                                onComplete={handleWizardComplete}
+                                initialData={savedData}
+                                invalidShareLink={share.invalid}
+                            />
                         )}
                     </ErrorBoundary>
                 </div>

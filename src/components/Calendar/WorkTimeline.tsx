@@ -1,10 +1,11 @@
 import type { ComputedPeriod } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
-import { formatDisplayDate } from '../../utils/leaveCalculator';
-import { parseLocalDate } from '../../utils/calendarHelpers';
+import type { Language } from '../../i18n/LanguageContext';
+import { formatDisplayDate, parseLocalDate } from '../../utils/dates';
 
 interface Props {
     periods: ComputedPeriod[];
+    lang: Language;
     t: TranslationKeys;
 }
 
@@ -13,10 +14,7 @@ interface TimeBlock {
     end: Date;
 }
 
-/**
- * Merges overlapping or contiguous date ranges into a minimal list of blocks.
- */
-function mergeTimeBlocks(blocks: TimeBlock[]): TimeBlock[] {
+export function mergeTimeBlocks(blocks: TimeBlock[]): TimeBlock[] {
     if (blocks.length === 0) return [];
     const sorted = [...blocks].sort((a, b) => a.start.getTime() - b.start.getTime());
     const merged: TimeBlock[] = [];
@@ -34,50 +32,47 @@ function mergeTimeBlocks(blocks: TimeBlock[]): TimeBlock[] {
     return merged;
 }
 
-export default function WorkTimeline({ periods, t }: Props) {
-    const allLeave: TimeBlock[] = periods.map((p) => ({
-        start: parseLocalDate(p.startDate),
-        end: parseLocalDate(p.endDate),
-    }));
-
-    const merged = mergeTimeBlocks(allLeave);
+export default function WorkTimeline({ periods, lang, t }: Props) {
+    const merged = mergeTimeBlocks(
+        periods.map((p) => ({
+            start: parseLocalDate(p.startDate),
+            end: parseLocalDate(p.endDate),
+        })),
+    );
+    if (merged.length === 0) return null;
 
     return (
         <div className="return-date">
             <span className="return-label">{t.workTimeline}</span>
             <div className="return-value">
-                {merged.length === 0 ? null : (
-                    <ul className="work-timeline-list">
-                        {merged.map((block, i) => (
-                            <li
-                                key={`${block.start.getTime()}-${block.end.getTime()}`}
-                                className="work-timeline-item"
-                            >
-                                <div className="work-timeline-dot" />
-                                <div className="work-timeline-content">
-                                    <div className="work-timeline-row">
-                                        <span className="work-timeline-label">
-                                            {t.stopsWorking}
-                                        </span>
-                                        <span className="work-timeline-date">
-                                            {formatDisplayDate(block.start)}
-                                        </span>
-                                    </div>
-                                    <div className="work-timeline-row">
-                                        <span className="work-timeline-label">
-                                            {i === merged.length - 1
-                                                ? t.returnsToWorkFinal
-                                                : t.returnsToWork}
-                                        </span>
-                                        <span className="work-timeline-date">
-                                            {formatDisplayDate(block.end)}
-                                        </span>
-                                    </div>
+                <ul className="work-timeline-list">
+                    {merged.map((block, i) => (
+                        <li
+                            key={`${block.start.getTime()}-${block.end.getTime()}`}
+                            className="work-timeline-item"
+                        >
+                            <div className="work-timeline-dot" />
+                            <div className="work-timeline-content">
+                                <div className="work-timeline-row">
+                                    <span className="work-timeline-label">{t.stopsWorking}</span>
+                                    <span className="work-timeline-date">
+                                        {formatDisplayDate(block.start, lang)}
+                                    </span>
                                 </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                <div className="work-timeline-row">
+                                    <span className="work-timeline-label">
+                                        {i === merged.length - 1
+                                            ? t.returnsToWorkFinal
+                                            : t.returnsToWork}
+                                    </span>
+                                    <span className="work-timeline-date">
+                                        {formatDisplayDate(block.end, lang)}
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

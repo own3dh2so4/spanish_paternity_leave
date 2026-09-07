@@ -1,26 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-/**
- * Custom hook for persisting state to localStorage.
- *
- * @param key - localStorage key
- * @param initialValue - default value if key doesn't exist
- * @returns state and setter, identical in shape to useState
- */
-export function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+interface Options<T> {
+    /** Turns the raw parsed JSON into a T, or null when it is unusable. */
+    validate: (raw: unknown) => T | null;
+    /** When defined, becomes the initial state (and is persisted) instead of the stored value. */
+    override?: T;
+}
+
+export function useLocalStorage<T>(
+    key: string,
+    initialValue: T,
+    options: Options<T>,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
     const [storedValue, setStoredValue] = useState<T>(() => {
+        if (options.override !== undefined) return options.override;
         try {
             const item = window.localStorage.getItem(key);
-            return item ? (JSON.parse(item) as T) : initialValue;
-        } catch (error) {
-            console.warn(`Error reading localStorage key "${key}":`, error);
+            if (item === null) return initialValue;
+            return options.validate(JSON.parse(item)) ?? initialValue;
+        } catch {
             return initialValue;
         }
     });
 
+    const skipFirstWrite = useRef(options.override === undefined);
+
     useEffect(() => {
+        if (skipFirstWrite.current) {
+            skipFirstWrite.current = false;
+            return;
+        }
         try {
-            window.localStorage.setItem(key, JSON.stringify(storedValue));
+            if (storedValue === null || storedValue === undefined) {
+                window.localStorage.removeItem(key);
+            } else {
+                window.localStorage.setItem(key, JSON.stringify(storedValue));
+            }
         } catch (error) {
             console.warn(`Error setting localStorage key "${key}":`, error);
         }

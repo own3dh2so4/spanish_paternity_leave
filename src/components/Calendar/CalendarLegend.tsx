@@ -4,7 +4,7 @@ import type { TranslationKeys } from '../../i18n/en';
 
 interface Props {
     displayOrder: number[];
-    effectiveSchedule: ComputedParentSchedule[];
+    schedule: ComputedParentSchedule[];
     activeColors: ColorPalette[];
     hiddenParents: Set<number>;
     t: TranslationKeys;
@@ -12,7 +12,7 @@ interface Props {
 
 export default function CalendarLegend({
     displayOrder,
-    effectiveSchedule,
+    schedule,
     activeColors,
     hiddenParents,
     t,
@@ -29,67 +29,45 @@ export default function CalendarLegend({
                         </div>
                     </div>
                 </div>
-                {displayOrder.map((realIdx) => {
-                    if (hiddenParents.has(realIdx)) return null;
-                    const parent = effectiveSchedule[realIdx];
-                    if (!parent) return null;
-                    const activeColor = activeColors[realIdx];
-                    const hasLactancia = parent.periods.some(
-                        (p) => !p.isExtra && p.type === LEAVE_TYPES.LACTANCIA,
-                    );
-                    const hasCuidado = parent.periods.some(
-                        (p) => !p.isExtra && p.type === LEAVE_TYPES.CUIDADO,
-                    );
-                    const hasExtra = parent.periods.some((p) => p.isExtra);
+                {displayOrder.map((idx) => {
+                    const parent = schedule[idx];
+                    if (!parent || hiddenParents.has(idx)) return null;
+                    const color = activeColors[idx];
+                    const has = (type: string, extra = false) =>
+                        parent.periods.some((p) =>
+                            extra ? p.isExtra : !p.isExtra && p.type === type,
+                        );
+                    const items: { color: string; label: string }[] = [
+                        { color: color.mandatory, label: t.parentMandatory(parent.name) },
+                        { color: color.flexible, label: t.parentFlexible(parent.name) },
+                    ];
+                    if (has(LEAVE_TYPES.CONVENIO))
+                        items.push({ color: color.convenio, label: t.parentConvenio(parent.name) });
+                    if (has(LEAVE_TYPES.CUIDADO))
+                        items.push({
+                            color: color.cuidado,
+                            label: t.parentExtraUntil8(parent.name),
+                        });
+                    if (has(LEAVE_TYPES.LACTANCIA))
+                        items.push({
+                            color: color.lactancia,
+                            label: t.parentLactancia(parent.name),
+                        });
+                    if (has('', true))
+                        items.push({ color: color.extra, label: t.parentExtra(parent.name) });
                     return (
-                        <div key={parent.name} className="legend-section">
+                        <div key={idx} className="legend-section">
                             <div className="legend-title">{parent.name}</div>
                             <div className="legend-items">
-                                <div className="legend-item">
-                                    <div
-                                        className="legend-color"
-                                        style={{ backgroundColor: activeColor.mandatory }}
-                                    />
-                                    <span>{t.parentMandatory(parent.name)}</span>
-                                </div>
-                                <div className="legend-item">
-                                    <div
-                                        className="legend-color"
-                                        style={{ backgroundColor: activeColor.flexible }}
-                                    />
-                                    <span>{t.parentFlexible(parent.name)}</span>
-                                </div>
-                                {hasLactancia && (
-                                    <div className="legend-item">
+                                {items.map((item) => (
+                                    <div key={item.label} className="legend-item">
                                         <div
                                             className="legend-color"
-                                            style={{
-                                                backgroundColor: activeColor.lactancia,
-                                            }}
+                                            style={{ backgroundColor: item.color }}
                                         />
-                                        <span>{t.parentLactancia(parent.name)}</span>
+                                        <span>{item.label}</span>
                                     </div>
-                                )}
-                                {hasCuidado && (
-                                    <div className="legend-item">
-                                        <div
-                                            className="legend-color"
-                                            style={{
-                                                backgroundColor: activeColor.cuidado,
-                                            }}
-                                        />
-                                        <span>{t.parentChildcare(parent.name)}</span>
-                                    </div>
-                                )}
-                                {hasExtra && (
-                                    <div className="legend-item">
-                                        <div
-                                            className="legend-color"
-                                            style={{ backgroundColor: activeColor.extra }}
-                                        />
-                                        <span>{t.parentExtra(parent.name)}</span>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         </div>
                     );

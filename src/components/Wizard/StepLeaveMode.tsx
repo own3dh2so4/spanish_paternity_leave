@@ -19,6 +19,7 @@ export default function StepLeaveMode({ value, onChange }: Props) {
                     type="button"
                     className={`mode-card ${value === LEAVE_MODES.TOGETHER ? 'active' : ''}`}
                     onClick={() => onChange(LEAVE_MODES.TOGETHER)}
+                    data-testid="mode-together-btn"
                 >
                     <div className="mode-card-icon">🤝</div>
                     <h3>{t.modeTogether}</h3>
@@ -32,6 +33,7 @@ export default function StepLeaveMode({ value, onChange }: Props) {
                     type="button"
                     className={`mode-card ${value === LEAVE_MODES.OPTIMIZED ? 'active' : ''}`}
                     onClick={() => onChange(LEAVE_MODES.OPTIMIZED)}
+                    data-testid="mode-optimized-btn"
                 >
                     <div className="mode-card-icon">📐</div>
                     <h3>{t.modeOptimized}</h3>
