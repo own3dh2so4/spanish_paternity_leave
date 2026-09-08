@@ -7,7 +7,15 @@ import globals from 'globals';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-    { ignores: ['dist', 'node_modules', 'e2e/node_modules', 'e2e/playwright-report', 'e2e/test-results'] },
+    {
+        ignores: [
+            'dist',
+            'node_modules',
+            'e2e/node_modules',
+            'e2e/playwright-report',
+            'e2e/test-results',
+        ],
+    },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {

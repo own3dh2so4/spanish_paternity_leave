@@ -151,6 +151,9 @@ export const es: TranslationKeys = {
 
     unitDays: 'días',
     unitWeeksShort: 'sem.',
+    labelPeriodType: 'Tipo de período',
+    labelDuration: 'Duración',
+    labelDurationUnit: 'Unidad de duración',
     unitMonths: 'meses',
 
     presetVacation: 'Vacaciones',

@@ -19,8 +19,12 @@ test.describe('Basic flow: two parents together', () => {
         for (const idx of [0, 1]) {
             await expect(calendar.row(idx, 'mandatory')).toContainText('Mandatory leave (6 weeks)');
             await expect(calendar.row(idx, 'flexible')).toContainText('Flexible leave (11 weeks)');
-            await expect(calendar.row(idx, 'lactancia')).toContainText(/Accumulated lactancia \(\d+ days\)/);
-            await expect(calendar.row(idx, 'cuidado')).toContainText('Extra weeks until age 8 (2 weeks)');
+            await expect(calendar.row(idx, 'lactancia')).toContainText(
+                /Accumulated lactancia \(\d+ days\)/,
+            );
+            await expect(calendar.row(idx, 'cuidado')).toContainText(
+                'Extra weeks until age 8 (2 weeks)',
+            );
         }
     });
 });

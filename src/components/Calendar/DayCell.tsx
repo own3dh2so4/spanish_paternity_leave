@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { LEAVE_TYPES } from '../../constants';
+import { readableInkOn } from '../../constants';
 import type { ColorPalette, DateMapEntry } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
 import type { Language } from '../../i18n/LanguageContext';
+import { DISPLAY_LOCALES } from '../../utils/dates';
 
 interface Props {
     day: Date | null;
@@ -15,8 +16,6 @@ interface Props {
     lang: Language;
     t: TranslationKeys;
 }
-
-const LOCALES: Record<Language, string> = { en: 'en-GB', es: 'es-ES' };
 
 export default function DayCell({
     day,
@@ -39,18 +38,17 @@ export default function DayCell({
     const style: React.CSSProperties = {};
     let textColor: string | undefined;
     if (hasEntries && parentColors) {
+        const c1 = parentColors[shown[0].parentIndex][shown[0].type];
         if (shown.length > 1) {
-            const c1 = parentColors[shown[0].parentIndex][shown[0].type];
             const c2 = parentColors[shown[1].parentIndex][shown[1].type];
             style.background = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
-            textColor = 'white';
         } else {
-            style.backgroundColor = parentColors[shown[0].parentIndex][shown[0].type];
-            textColor = shown[0].type === LEAVE_TYPES.LACTANCIA ? 'var(--text-primary)' : 'white';
+            style.backgroundColor = c1;
         }
+        textColor = readableInkOn(c1);
     }
 
-    const dateLabel = day.toLocaleDateString(LOCALES[lang], {
+    const dateLabel = day.toLocaleDateString(DISPLAY_LOCALES[lang], {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -105,34 +103,32 @@ export default function DayCell({
                 </span>
             )}
 
-            {
-                <div className={`day-tooltip ${tooltipSide}`} aria-hidden="true">
-                    <div className="tooltip-header">{dateLabel}</div>
-                    {isBirthDay && <div className="tooltip-birth">👶 {t.birthDate}</div>}
-                    {hasEntries && parentColors && (
-                        <div className="tooltip-entries">
-                            {shown.map((entry) => (
+            <div className={`day-tooltip ${tooltipSide}`} aria-hidden="true">
+                <div className="tooltip-header">{dateLabel}</div>
+                {isBirthDay && <div className="tooltip-birth">👶 {t.birthDate}</div>}
+                {hasEntries && parentColors && (
+                    <div className="tooltip-entries">
+                        {shown.map((entry) => (
+                            <div
+                                key={`${entry.parentIndex}-${entry.type}`}
+                                className="tooltip-entry"
+                            >
                                 <div
-                                    key={`${entry.parentIndex}-${entry.type}`}
-                                    className="tooltip-entry"
-                                >
-                                    <div
-                                        className="tooltip-color-bar"
-                                        style={{
-                                            backgroundColor:
-                                                parentColors[entry.parentIndex][entry.type],
-                                        }}
-                                    />
-                                    <div className="tooltip-entry-content">
-                                        <span className="tooltip-name">{entry.parentName}</span>
-                                        <span className="tooltip-type">{entry.label}</span>
-                                    </div>
+                                    className="tooltip-color-bar"
+                                    style={{
+                                        backgroundColor:
+                                            parentColors[entry.parentIndex][entry.type],
+                                    }}
+                                />
+                                <div className="tooltip-entry-content">
+                                    <span className="tooltip-name">{entry.parentName}</span>
+                                    <span className="tooltip-type">{entry.label}</span>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            }
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </button>
     );
 }

@@ -13,11 +13,11 @@
         "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/tsconfig.json",
         "lint": "eslint src e2e/tests e2e/page-objects e2e/utils",
         "lint:fix": "eslint src e2e/tests e2e/page-objects e2e/utils --fix",
-        "format": "prettier --write src",
+        "format": "prettier --write .",
         "test": "vitest",
         "test:run": "vitest run",
         "test:e2e": "npm --prefix e2e run test:e2e",
-        "format:check": "prettier --check src"
+        "format:check": "prettier --check ."
     },
     "dependencies": {
         "date-fns": "^4.4.0",

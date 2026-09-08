@@ -76,7 +76,7 @@ export function todayIso(): string {
     return formatDateKey(new Date());
 }
 
-const DISPLAY_LOCALES: Record<Language, string> = { en: 'en-GB', es: 'es-ES' };
+export const DISPLAY_LOCALES: Record<Language, string> = { en: 'en-GB', es: 'es-ES' };
 
 export function formatDisplayDate(date: Date, lang: Language): string {
     return date.toLocaleDateString(DISPLAY_LOCALES[lang], {

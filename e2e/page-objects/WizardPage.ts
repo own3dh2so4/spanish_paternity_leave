@@ -76,7 +76,9 @@ export class WizardPage {
             await this.page.getByTestId(`disability-btn-${disability ? 'yes' : 'no'}`).click();
         }
         if (mother !== undefined) {
-            await this.page.getByTestId(mother === null ? 'mother-btn-none' : `mother-btn-${mother}`).click();
+            await this.page
+                .getByTestId(mother === null ? 'mother-btn-none' : `mother-btn-${mother}`)
+                .click();
         }
         if (anticipatedWeeks !== undefined) {
             await this.page.getByTestId(`anticipated-btn-${anticipatedWeeks}`).click();
@@ -105,7 +107,10 @@ export class WizardPage {
 
     async setRegime(parentIndex: number, regime: Regime) {
         await this.regimeButton(parentIndex, regime).click();
-        await expect(this.regimeButton(parentIndex, regime)).toHaveAttribute('aria-checked', 'true');
+        await expect(this.regimeButton(parentIndex, regime)).toHaveAttribute(
+            'aria-checked',
+            'true',
+        );
     }
 
     async setConvenioDays(parentIndex: number, days: number) {

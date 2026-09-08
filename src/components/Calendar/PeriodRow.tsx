@@ -122,7 +122,7 @@ export default function PeriodRow({
                             }
                             step={1}
                             className="period-edit-input"
-                            aria-label={t.clickToEdit}
+                            aria-label={t.labelDuration}
                             value={editValue}
                             onChange={(e) => editor.setEditValue(e.target.value)}
                             onKeyDown={(e) => {
@@ -133,7 +133,7 @@ export default function PeriodRow({
                         {isLactancia && !isNaturalLactancia ? (
                             <select
                                 className="period-edit-unit-select"
-                                aria-label={t.unitDays}
+                                aria-label={t.labelDurationUnit}
                                 value={editUnit}
                                 onChange={(e) => editor.setEditUnit(e.target.value as EditUnit)}
                             >

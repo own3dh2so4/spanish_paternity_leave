@@ -27,7 +27,7 @@ export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) 
         <div className="add-extra-form" data-testid="add-extra-form">
             <select
                 className="add-extra-preset-select"
-                aria-label={t.btnAddPeriod}
+                aria-label={t.labelPeriodType}
                 value={form.presetKey}
                 onChange={(e) => editor.setPreset(e.target.value as ExtraPresetKey, parent)}
             >
@@ -62,7 +62,7 @@ export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) 
                     min="1"
                     max={max}
                     step="1"
-                    aria-label={isFlexExtra ? t.unitWeeksShort : t.unitDays}
+                    aria-label={t.labelDuration}
                     value={form.durationValue}
                     onChange={(e) => {
                         const raw = Number.parseInt(e.target.value, 10);
@@ -73,7 +73,7 @@ export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) 
                 />
                 <select
                     className="add-extra-unit-select"
-                    aria-label={t.unitWeeksShort}
+                    aria-label={t.labelDurationUnit}
                     value={isFlexExtra ? 'weeks' : form.durationUnit}
                     disabled={isFlexExtra}
                     onChange={(e) => editor.setDurationUnit(e.target.value as 'days' | 'weeks')}

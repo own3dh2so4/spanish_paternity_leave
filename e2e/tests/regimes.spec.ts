@@ -65,7 +65,9 @@ test.describe('Employment regimes', () => {
 
         await expect(calendar.row(1, 'gestation')).toHaveCount(0);
         await expect(calendar.row(1, 'convenio')).toHaveCount(0);
-        await expect(calendar.row(1, 'lactancia')).toContainText(/Accumulated lactancia \(\d+ days\)/);
+        await expect(calendar.row(1, 'lactancia')).toContainText(
+            /Accumulated lactancia \(\d+ days\)/,
+        );
         await expect(calendar.row(1, 'lactancia')).not.toContainText('calendar days');
     });
 
@@ -92,11 +94,18 @@ test.describe('Employment regimes', () => {
         await wizard.submit();
         await calendar.expectLoaded();
 
-        expect(await calendar.rowOrder(0)).toEqual(['mandatory', 'flexible', 'lactancia', 'cuidado']);
+        expect(await calendar.rowOrder(0)).toEqual([
+            'mandatory',
+            'flexible',
+            'lactancia',
+            'cuidado',
+        ]);
         await expect(calendar.row(0, 'gestation')).toHaveCount(0);
         await expect(calendar.row(0, 'convenio')).toHaveCount(0);
         await expect(calendar.row(0, 'anticipated')).toHaveCount(0);
-        await expect(calendar.row(0, 'lactancia')).toContainText(/Accumulated lactancia \(\d+ days\)/);
+        await expect(calendar.row(0, 'lactancia')).toContainText(
+            /Accumulated lactancia \(\d+ days\)/,
+        );
         await expect(calendar.row(0, 'lactancia')).not.toContainText('calendar days');
     });
 

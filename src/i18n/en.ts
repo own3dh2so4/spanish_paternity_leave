@@ -123,6 +123,9 @@ export interface TranslationKeys {
 
     unitDays: string;
     unitWeeksShort: string;
+    labelPeriodType: string;
+    labelDuration: string;
+    labelDurationUnit: string;
     unitMonths: string;
 
     presetVacation: string;
@@ -302,6 +305,9 @@ export const en: TranslationKeys = {
 
     unitDays: 'days',
     unitWeeksShort: 'weeks',
+    labelPeriodType: 'Period type',
+    labelDuration: 'Duration',
+    labelDurationUnit: 'Duration unit',
     unitMonths: 'months',
 
     presetVacation: 'Holidays',

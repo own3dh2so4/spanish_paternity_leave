@@ -149,6 +149,35 @@ export function paletteFor(colorId: string | undefined, index: number): ColorPal
     return COLOR_PALETTES[PALETTE_IDS[index % PALETTE_IDS.length]];
 }
 
+const LIGHT_INK = '#FFFFFF';
+const DARK_INK = '#111827';
+
+function srgbChannel(value: number): number {
+    const c = value / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex: string): number {
+    const value = Number.parseInt(hex.replace('#', ''), 16);
+    return (
+        0.2126 * srgbChannel((value >> 16) & 0xff) +
+        0.7152 * srgbChannel((value >> 8) & 0xff) +
+        0.0722 * srgbChannel(value & 0xff)
+    );
+}
+
+/**
+ * Ink for text sitting on a palette colour. Derived from the background rather
+ * than the theme: a day cell is painted from the palette, so a theme-driven
+ * colour goes light-on-light in dark mode.
+ */
+export function readableInkOn(background: string): string {
+    const luminance = relativeLuminance(background);
+    const contrastWithLight = 1.05 / (luminance + 0.05);
+    const contrastWithDark = (luminance + 0.05) / (relativeLuminance(DARK_INK) + 0.05);
+    return contrastWithLight >= contrastWithDark ? LIGHT_INK : DARK_INK;
+}
+
 export const MAX_DURATION_VALUE = 999;
 
 export const STORAGE_KEY = 'paternity_leave_data';

@@ -30,14 +30,24 @@ test.describe('Calendar view interactions', () => {
     test('"Move earlier" swaps lactancia with the flexible period', async ({ page }) => {
         const calendar = await openCalendar(page);
 
-        expect(await calendar.rowOrder(0)).toEqual(['mandatory', 'flexible', 'lactancia', 'cuidado']);
+        expect(await calendar.rowOrder(0)).toEqual([
+            'mandatory',
+            'flexible',
+            'lactancia',
+            'cuidado',
+        ]);
         await expect(
             calendar.row(0, 'flexible').getByRole('button', { name: 'Move earlier' }),
         ).toBeDisabled();
 
         await calendar.moveEarlier(0, 'lactancia');
 
-        expect(await calendar.rowOrder(0)).toEqual(['mandatory', 'lactancia', 'flexible', 'cuidado']);
+        expect(await calendar.rowOrder(0)).toEqual([
+            'mandatory',
+            'lactancia',
+            'flexible',
+            'cuidado',
+        ]);
         const mandatory = await calendar.rangeOf(0, 'mandatory');
         const lactancia = await calendar.rangeOf(0, 'lactancia');
         const flexible = await calendar.rangeOf(0, 'flexible');

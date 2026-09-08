@@ -1,5 +1,5 @@
 import { LEAVE_TYPES } from '../../constants';
-import type { ColorPalette, ComputedParentSchedule } from '../../types';
+import type { ColorPalette, ComputedParentSchedule, LeaveType } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
 
 interface Props {
@@ -33,27 +33,26 @@ export default function CalendarLegend({
                     const parent = schedule[idx];
                     if (!parent || hiddenParents.has(idx)) return null;
                     const color = activeColors[idx];
-                    const has = (type: string, extra = false) =>
-                        parent.periods.some((p) =>
-                            extra ? p.isExtra : !p.isExtra && p.type === type,
-                        );
+                    const hasType = (type: LeaveType) =>
+                        parent.periods.some((p) => !p.isExtra && p.type === type);
+                    const hasExtra = () => parent.periods.some((p) => p.isExtra);
                     const items: { color: string; label: string }[] = [
                         { color: color.mandatory, label: t.parentMandatory(parent.name) },
                         { color: color.flexible, label: t.parentFlexible(parent.name) },
                     ];
-                    if (has(LEAVE_TYPES.CONVENIO))
+                    if (hasType(LEAVE_TYPES.CONVENIO))
                         items.push({ color: color.convenio, label: t.parentConvenio(parent.name) });
-                    if (has(LEAVE_TYPES.CUIDADO))
+                    if (hasType(LEAVE_TYPES.CUIDADO))
                         items.push({
                             color: color.cuidado,
                             label: t.parentExtraUntil8(parent.name),
                         });
-                    if (has(LEAVE_TYPES.LACTANCIA))
+                    if (hasType(LEAVE_TYPES.LACTANCIA))
                         items.push({
                             color: color.lactancia,
                             label: t.parentLactancia(parent.name),
                         });
-                    if (has('', true))
+                    if (hasExtra())
                         items.push({ color: color.extra, label: t.parentExtra(parent.name) });
                     return (
                         <div key={idx} className="legend-section">
