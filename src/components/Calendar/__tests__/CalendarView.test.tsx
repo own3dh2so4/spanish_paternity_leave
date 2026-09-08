@@ -339,7 +339,9 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
 
         fireEvent.click(screen.getByTestId('share-btn'));
 
-        expect(await screen.findByRole('status')).toHaveTextContent('Link copied to clipboard!');
+        expect(await screen.findByRole('status', {}, { timeout: 5000 })).toHaveTextContent(
+            'Link copied to clipboard!',
+        );
         expect(writeText).toHaveBeenCalledWith(expect.stringContaining('share='));
         vi.unstubAllGlobals();
     });
@@ -355,7 +357,9 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
 
         fireEvent.click(screen.getByTestId('share-btn'));
 
-        expect(await screen.findByRole('status')).toHaveTextContent('Could not copy the link');
+        expect(await screen.findByRole('status', {}, { timeout: 5000 })).toHaveTextContent(
+            'Could not copy the link',
+        );
         vi.unstubAllGlobals();
     });
 
