@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Wizard from './components/Wizard/Wizard';
 import CalendarView from './components/Calendar/CalendarView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -18,9 +18,17 @@ interface ShareResult {
 }
 
 function readShareParam(): ShareResult {
-    const params = new URLSearchParams(window.location.search);
-    const shareParam = params.get('share');
+    const shareParam = new URLSearchParams(window.location.search).get('share');
     if (!shareParam) return { data: null, hiddenParents: new Set(), invalid: false };
+
+    const payload = decompressWizardData(shareParam);
+    if (!payload) return { data: null, hiddenParents: new Set(), invalid: true };
+    return { data: payload.data, hiddenParents: new Set(payload.hiddenParents), invalid: false };
+}
+
+function stripShareParam(): void {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('share')) return;
 
     params.delete('share');
     const query = params.toString();
@@ -29,14 +37,11 @@ function readShareParam(): ShareResult {
         '',
         `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`,
     );
-
-    const payload = decompressWizardData(shareParam);
-    if (!payload) return { data: null, hiddenParents: new Set(), invalid: true };
-    return { data: payload.data, hiddenParents: new Set(payload.hiddenParents), invalid: false };
 }
 
 export default function App() {
     const [share] = useState(readShareParam);
+    useEffect(stripShareParam, []);
 
     const [savedData, setSavedData] = useLocalStorage<WizardData | null>(STORAGE_KEY, null, {
         validate: validateWizardData,

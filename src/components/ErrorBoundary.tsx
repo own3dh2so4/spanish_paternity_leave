@@ -1,6 +1,8 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { STORAGE_KEY } from '../constants';
 import { en } from '../i18n/en';
 import { es } from '../i18n/es';
+import { LANG_STORAGE_KEY } from '../i18n/LanguageContext';
 
 interface Props {
     children: ReactNode;
@@ -12,7 +14,7 @@ interface State {
 
 function readLang(): 'en' | 'es' {
     try {
-        return window.localStorage.getItem('lang') === 'es' ? 'es' : 'en';
+        return window.localStorage.getItem(LANG_STORAGE_KEY) === 'es' ? 'es' : 'en';
     } catch {
         return 'en';
     }
@@ -31,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     private handleReset = (): void => {
         try {
-            window.localStorage.clear();
+            window.localStorage.removeItem(STORAGE_KEY);
         } catch {
             /* resetting anyway */
         }

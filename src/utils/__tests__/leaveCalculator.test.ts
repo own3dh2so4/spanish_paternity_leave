@@ -233,6 +233,19 @@ describe('calculateLeaveSchedule — regimes', () => {
         ).toBe(3);
         expect(period(parent, 'lactancia').startDate).toBe(convenio.endDate);
     });
+
+    it('accrues lactancia from the end of the convenio days, not from the flexible block', () => {
+        const withConvenio = calculateLeaveSchedule(makeInput({ convenioDays: [10, 0] }))[0];
+        const lact = period(withConvenio, 'lactancia');
+        const expected = calculateLactanciaDays(
+            parseLocalDate(lact.startDate),
+            parseLocalDate(DUE_DATE),
+        );
+        expect(lact.days).toBe(expected);
+
+        const withoutConvenio = calculateLeaveSchedule(makeInput())[0];
+        expect(lact.days!).toBeLessThan(period(withoutConvenio, 'lactancia').days!);
+    });
 });
 
 describe('calculateLeaveSchedule — keeping the weeks until age 8 for later', () => {

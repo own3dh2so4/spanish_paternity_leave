@@ -43,7 +43,7 @@ export default function CalendarHeader({
         <header className="calendar-header">
             <div className="header-left">
                 <h1>{t.scheduleTitle}</h1>
-                <p className="header-subtitle">
+                <div className="header-subtitle">
                     {t.dueDate}:{' '}
                     <DatePicker
                         selected={dueDate}
@@ -75,7 +75,7 @@ export default function CalendarHeader({
                             </strong>
                         </>
                     )}
-                </p>
+                </div>
             </div>
             <div className="header-toolbar">
                 <button

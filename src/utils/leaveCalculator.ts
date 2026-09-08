@@ -85,7 +85,7 @@ function buildParent(
         periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, cursor, lactanciaEnd, null));
         cursor = lactanciaEnd;
     } else {
-        const lactanciaDays = calculateLactanciaDays(flexibleEnd, birth, rules.lactanciaMonths);
+        const lactanciaDays = calculateLactanciaDays(cursor, birth, rules.lactanciaMonths);
         if (lactanciaDays > 0) {
             const lactanciaEnd = addWorkingDays(cursor, lactanciaDays);
             periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, cursor, lactanciaEnd, lactanciaDays));
@@ -112,7 +112,7 @@ function buildParent(
 }
 
 export function calculateLeaveSchedule(input: WizardInput): ComputedParentSchedule[] {
-    const count = input.names.length;
+    const count = input.parentCount;
 
     if (count === 2 && input.leaveMode === LEAVE_MODES.OPTIMIZED) {
         const firstIdx = input.firstParent === 1 ? 1 : 0;

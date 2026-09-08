@@ -12,12 +12,14 @@ export function useLocalStorage<T>(
     initialValue: T,
     options: Options<T>,
 ): [T, React.Dispatch<React.SetStateAction<T>>] {
+    const { validate } = options;
+
     const [storedValue, setStoredValue] = useState<T>(() => {
         if (options.override !== undefined) return options.override;
         try {
             const item = window.localStorage.getItem(key);
             if (item === null) return initialValue;
-            return options.validate(JSON.parse(item)) ?? initialValue;
+            return validate(JSON.parse(item)) ?? initialValue;
         } catch {
             return initialValue;
         }
@@ -31,15 +33,38 @@ export function useLocalStorage<T>(
             return;
         }
         try {
-            if (storedValue === null || storedValue === undefined) {
+            const serialized =
+                storedValue === null || storedValue === undefined
+                    ? null
+                    : JSON.stringify(storedValue);
+            if (serialized === window.localStorage.getItem(key)) return;
+            if (serialized === null) {
                 window.localStorage.removeItem(key);
             } else {
-                window.localStorage.setItem(key, JSON.stringify(storedValue));
+                window.localStorage.setItem(key, serialized);
             }
         } catch (error) {
             console.warn(`Error setting localStorage key "${key}":`, error);
         }
     }, [key, storedValue]);
+
+    useEffect(() => {
+        const adoptOtherTabValue = (event: StorageEvent) => {
+            if (event.key !== key || event.storageArea !== window.localStorage) return;
+            if (event.newValue === null) {
+                setStoredValue(initialValue);
+                return;
+            }
+            try {
+                const next = validate(JSON.parse(event.newValue));
+                if (next !== null) setStoredValue(next);
+            } catch {
+                /* keep the value this tab already has */
+            }
+        };
+        window.addEventListener('storage', adoptOtherTabValue);
+        return () => window.removeEventListener('storage', adoptOtherTabValue);
+    }, [key, validate, initialValue]);
 
     return [storedValue, setStoredValue];
 }

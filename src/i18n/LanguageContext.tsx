@@ -5,7 +5,7 @@ import type { TranslationKeys } from './en';
 
 export type Language = 'en' | 'es';
 
-const STORAGE_KEY = 'lang';
+export const LANG_STORAGE_KEY = 'lang';
 const TRANSLATIONS: Record<Language, TranslationKeys> = { en, es };
 
 interface LanguageContextValue {
@@ -21,7 +21,7 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 function detectInitialLanguage(): Language {
-    const stored = localStorage.getItem(STORAGE_KEY) as Language | null;
+    const stored = localStorage.getItem(LANG_STORAGE_KEY) as Language | null;
     if (stored === 'en' || stored === 'es') return stored;
     // Fall back to browser language
     if (navigator.language.startsWith('es')) return 'es';
@@ -32,7 +32,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const [lang, setLangState] = useState<Language>(detectInitialLanguage);
 
     const setLang = useCallback((newLang: Language) => {
-        localStorage.setItem(STORAGE_KEY, newLang);
+        localStorage.setItem(LANG_STORAGE_KEY, newLang);
         setLangState(newLang);
     }, []);
 
