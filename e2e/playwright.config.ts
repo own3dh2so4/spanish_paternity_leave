@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const DEV_SERVER_URL = 'http://localhost:5173';
+const DEV_SERVER_URL = 'http://localhost:5173/';
 
 /** Point at an already-running deployment (a preview build, a container) instead of `npm run dev`. */
 const baseURL = process.env.E2E_BASE_URL ?? DEV_SERVER_URL;

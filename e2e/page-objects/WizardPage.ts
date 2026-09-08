@@ -39,7 +39,9 @@ export class WizardPage {
     }
 
     async goto() {
-        await this.page.goto('/');
+        // Relative, so a baseURL with a path (a preview build, GitHub Pages)
+        // is honoured instead of jumping to the domain root.
+        await this.page.goto('./');
         await expect(this.nextBtn).toBeVisible();
     }
 
