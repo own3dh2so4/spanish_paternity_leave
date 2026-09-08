@@ -74,6 +74,29 @@ describe('Wizard', () => {
         });
     });
 
+    it('preselects the biological mother as the parent who starts in staggered mode', () => {
+        const onComplete = vi.fn();
+        render(<Wizard onComplete={onComplete} initialData={null} />);
+        setDueDate('01/10/2026');
+        next();
+        next();
+        fireEvent.change(screen.getByTestId('parent-name-input-0'), { target: { value: 'Ana' } });
+        fireEvent.change(screen.getByTestId('parent-name-input-1'), { target: { value: 'Luis' } });
+        next();
+        fireEvent.click(screen.getByTestId('mother-btn-1'));
+        next();
+        fireEvent.click(screen.getByTestId('mode-optimized-btn'));
+        next();
+        expect(screen.getByTestId('first-parent-btn-1')).toHaveAttribute('aria-checked', 'true');
+        expect(screen.getByTestId('first-parent-btn-0')).toHaveAttribute('aria-checked', 'false');
+        next();
+        expect(onComplete.mock.calls[0][0]).toMatchObject({
+            biologicalMother: 1,
+            leaveMode: 'optimized',
+            firstParent: 1,
+        });
+    });
+
     it('blocks Next until the names are filled and warns about the invalid share link', () => {
         render(<Wizard onComplete={vi.fn()} initialData={null} invalidShareLink />);
         expect(screen.getByRole('alert')).toHaveTextContent(/not valid/);

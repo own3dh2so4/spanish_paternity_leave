@@ -40,7 +40,9 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     const [leaveMode, setLeaveMode] = useState<LeaveMode>(
         initialData?.leaveMode ?? LEAVE_MODES.TOGETHER,
     );
-    const [firstParent, setFirstParent] = useState(initialData?.firstParent ?? 0);
+    const [chosenFirstParent, setChosenFirstParent] = useState<number | null>(
+        initialData?.leaveMode === LEAVE_MODES.OPTIMIZED ? initialData.firstParent : null,
+    );
     const [babies, setBabies] = useState(initialData?.babies ?? 1);
     const [disability, setDisability] = useState(initialData?.disability ?? false);
     const [biologicalMother, setBiologicalMother] = useState<number | null>(
@@ -54,6 +56,10 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     const [useExtraWeeks, setUseExtraWeeks] = useState<boolean[]>(
         padTo2(initialData?.useExtraWeeks ?? [], true),
     );
+
+    const motherIndex =
+        biologicalMother !== null && biologicalMother < parentCount ? biologicalMother : null;
+    const firstParent = chosenFirstParent ?? motherIndex ?? 0;
 
     const allSteps: { id: StepId; label: string }[] = [
         { id: 'dueDate', label: t.stepDueDate },
@@ -94,8 +100,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
 
     const handleSubmit = () => {
         const effectiveMode = parentCount === 2 ? leaveMode : LEAVE_MODES.TOGETHER;
-        const mother =
-            biologicalMother !== null && biologicalMother < parentCount ? biologicalMother : null;
+        const mother = motherIndex;
         onComplete({
             version: WIZARD_DATA_VERSION,
             dueDate,
@@ -157,7 +162,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
                 return (
                     <StepFirstParent
                         value={firstParent}
-                        onChange={setFirstParent}
+                        onChange={setChosenFirstParent}
                         parentNames={names.slice(0, parentCount)}
                         colors={colors}
                     />
