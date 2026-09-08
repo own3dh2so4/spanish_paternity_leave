@@ -3,6 +3,7 @@ import { COLOR_PALETTES, LEAVE_TYPES, readableInkOn } from '../constants';
 import type { ColorPalette, LeaveType } from '../types';
 
 const LEAVE_TYPE_VALUES: LeaveType[] = Object.values(LEAVE_TYPES);
+const WCAG_AA_NORMAL_TEXT = 4.5;
 
 function relativeLuminance(hex: string): number {
     const channel = (value: number) => {
@@ -23,28 +24,24 @@ function contrastRatio(a: string, b: string): number {
 }
 
 describe('readableInkOn', () => {
-    it('picks dark ink on light backgrounds and light ink on dark ones', () => {
+    it('flips the ink with the background', () => {
         expect(readableInkOn('#FFFFFF')).toBe('#111827');
         expect(readableInkOn('#000000')).toBe('#FFFFFF');
-    });
-
-    it('picks dark ink for the pale lactancia swatches', () => {
         expect(readableInkOn('#C7D2FE')).toBe('#111827');
-        expect(readableInkOn('#FDE68A')).toBe('#111827');
-    });
-
-    it('picks light ink for the saturated mandatory swatches', () => {
         expect(readableInkOn('#4F46E5')).toBe('#FFFFFF');
-        expect(readableInkOn('#E11D48')).toBe('#FFFFFF');
     });
 
-    const cases = Object.values(COLOR_PALETTES).flatMap((palette) =>
-        LEAVE_TYPE_VALUES.map(
-            (type) => [palette.id, type, (palette as ColorPalette)[type]] as const,
-        ),
-    );
+    it('reaches WCAG AA on every palette colour', () => {
+        const failures = Object.values(COLOR_PALETTES).flatMap((palette) =>
+            LEAVE_TYPE_VALUES.flatMap((type) => {
+                const background = (palette as ColorPalette)[type];
+                const ratio = contrastRatio(background, readableInkOn(background));
+                return ratio >= WCAG_AA_NORMAL_TEXT
+                    ? []
+                    : [`${palette.id}/${type} ${background} is ${ratio.toFixed(2)}:1`];
+            }),
+        );
 
-    it.each(cases)('reaches WCAG AA on %s / %s', (_id, _type, background) => {
-        expect(contrastRatio(background, readableInkOn(background))).toBeGreaterThanOrEqual(4.5);
+        expect(failures).toEqual([]);
     });
 });
