@@ -75,6 +75,25 @@ function buildParent(
     const flexibleStart =
         flexibleStartFloor && flexibleStartFloor > mandatoryEnd ? flexibleStartFloor : mandatoryEnd;
     const flexibleEnd = addDays(flexibleStart, 7 * flexibleWeeks);
+
+    /**
+     * The staggered parent whose flexible block waits goes back to work when the
+     * mandatory block ends, so their estimated lactancia accrues from there
+     * instead of from the far later return — an earlier anchor is more days.
+     */
+    const estimatesLactancia = rules.lactanciaFixedNaturalDays === null;
+    const lactanciaOnReturnToWork = flexibleStart > mandatoryEnd && estimatesLactancia;
+
+    const pushEstimatedLactancia = (from: Date): Date => {
+        const lactanciaDays = calculateLactanciaDays(from, birth, rules.lactanciaMonths);
+        if (lactanciaDays === 0) return from;
+        const lactanciaEnd = addWorkingDays(from, lactanciaDays);
+        periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, from, lactanciaEnd, lactanciaDays));
+        return lactanciaEnd;
+    };
+
+    if (lactanciaOnReturnToWork) pushEstimatedLactancia(mandatoryEnd);
+
     if (flexibleWeeks > 0) {
         periods.push(makePeriod(LEAVE_TYPES.FLEXIBLE, flexibleStart, flexibleEnd));
     }
@@ -90,19 +109,34 @@ function buildParent(
         const lactanciaEnd = addDays(cursor, rules.lactanciaFixedNaturalDays * input.babies);
         periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, cursor, lactanciaEnd, null));
         cursor = lactanciaEnd;
-    } else {
-        const lactanciaDays = calculateLactanciaDays(cursor, birth, rules.lactanciaMonths);
-        if (lactanciaDays > 0) {
-            const lactanciaEnd = addWorkingDays(cursor, lactanciaDays);
-            periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, cursor, lactanciaEnd, lactanciaDays));
-            cursor = lactanciaEnd;
-        }
+    } else if (!lactanciaOnReturnToWork) {
+        cursor = pushEstimatedLactancia(cursor);
     }
 
     if (usesExtraWeeks(input, parentIndex) && allowance.extraUntil8Weeks > 0) {
         const cuidadoEnd = addDays(cursor, 7 * allowance.extraUntil8Weeks);
         periods.push(makePeriod(LEAVE_TYPES.CUIDADO, cursor, cuidadoEnd));
         cursor = cuidadoEnd;
+    }
+
+    const vacationDays = Math.max(0, Math.round(input.vacationDays?.[parentIndex] ?? 0));
+    if (vacationDays > 0) {
+        const inWorkdays = (input.vacationUnit?.[parentIndex] ?? 'workdays') === 'workdays';
+        const vacationEnd = inWorkdays
+            ? addWorkingDays(cursor, vacationDays)
+            : addDays(cursor, vacationDays);
+        periods.push({
+            type: LEAVE_TYPES.EXTRA,
+            startDate: formatDateKey(cursor),
+            endDate: formatDateKey(vacationEnd),
+            days: inWorkdays ? vacationDays : null,
+            isExtra: true,
+            extraId: `vacation-${parentIndex}`,
+            extraPresetKey: 'vacation',
+            durationValue: vacationDays,
+            durationUnit: inWorkdays ? 'workdays' : 'days',
+        });
+        cursor = vacationEnd;
     }
 
     return {

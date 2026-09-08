@@ -71,7 +71,13 @@ export default function PeriodRow({
     const label = formatLeaveType(period, t);
 
     const unitLabel = (u: EditUnit) =>
-        u === 'days' ? t.unitDays : u === 'weeks' ? t.unitWeeksShort : t.unitMonths;
+        u === 'days'
+            ? t.unitDays
+            : u === 'workdays'
+              ? t.unitWorkdays
+              : u === 'weeks'
+                ? t.unitWeeksShort
+                : t.unitMonths;
 
     return (
         <div
@@ -164,8 +170,7 @@ export default function PeriodRow({
                     <span className="period-type extra-period-name">
                         {label}
                         <span className="extra-period-badge">
-                            {period.durationValue}{' '}
-                            {period.durationUnit === 'weeks' ? t.unitWeeksShort : t.unitDays}
+                            {period.durationValue} {unitLabel(period.durationUnit ?? 'days')}
                         </span>
                     </span>
                 )}

@@ -1,6 +1,6 @@
 import type { ColorPalette, ColorPaletteId, LeaveMode, LeaveType, Regime } from './types';
 
-export const WIZARD_DATA_VERSION = 4;
+export const WIZARD_DATA_VERSION = 5;
 
 export const MANDATORY_WEEKS = 6;
 export const FLEXIBLE_WEEKS = { couple: 11, single: 22 } as const;
@@ -15,6 +15,7 @@ export const PARENTAL_LEAVE_WEEKS = 8;
 
 export const WORK_HOURS_PER_DAY = 8;
 export const MAX_CONVENIO_DAYS = 60;
+export const MAX_VACATION_DAYS = 60;
 
 export interface RegimeRules {
     lactanciaMonths: number;

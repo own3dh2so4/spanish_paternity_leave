@@ -2,11 +2,12 @@ import {
     MAX_ANTICIPATED_WEEKS,
     MAX_BABIES,
     MAX_CONVENIO_DAYS,
+    MAX_VACATION_DAYS,
     REGIMES,
     REGIME_RULES,
 } from '../../constants';
 import { useLanguage } from '../../i18n/LanguageContext';
-import type { Regime } from '../../types';
+import type { ExtraDurationUnit, Regime } from '../../types';
 import { defaultConvenioDays, getLeaveAllowance } from '../../utils/leaveLaw';
 
 interface Props {
@@ -26,6 +27,10 @@ interface Props {
     onChangeConvenioDays: (days: number[]) => void;
     useExtraWeeks: boolean[];
     onChangeUseExtraWeeks: (values: boolean[]) => void;
+    vacationDays: number[];
+    onChangeVacationDays: (days: number[]) => void;
+    vacationUnit: ExtraDurationUnit[];
+    onChangeVacationUnit: (units: ExtraDurationUnit[]) => void;
 }
 
 interface ChipOption<T> {
@@ -81,6 +86,10 @@ export default function StepDetails({
     onChangeConvenioDays,
     useExtraWeeks,
     onChangeUseExtraWeeks,
+    vacationDays,
+    onChangeVacationDays,
+    vacationUnit,
+    onChangeVacationUnit,
 }: Props) {
     const { t } = useLanguage();
     const allowance = getLeaveAllowance({ parentCount, babies, disability });
@@ -109,6 +118,19 @@ export default function StepDetails({
         const next = [...useExtraWeeks];
         next[i] = value;
         onChangeUseExtraWeeks(next);
+    };
+
+    const setVacationDays = (i: number, raw: string) => {
+        const n = Number.parseInt(raw, 10);
+        const next = [...vacationDays];
+        next[i] = Number.isFinite(n) ? Math.min(MAX_VACATION_DAYS, Math.max(0, n)) : 0;
+        onChangeVacationDays(next);
+    };
+
+    const setVacationUnit = (i: number, unit: ExtraDurationUnit) => {
+        const next = [...vacationUnit];
+        next[i] = unit;
+        onChangeVacationUnit(next);
     };
 
     const setConvenioDays = (i: number, raw: string) => {
@@ -200,6 +222,32 @@ export default function StepDetails({
                             />
                         </label>
                         <p className="details-hint">{t.convenioDaysHint}</p>
+                        <label className="details-inline-field">
+                            <span>{t.vacationDaysLabel}</span>
+                            <input
+                                type="number"
+                                min={0}
+                                max={MAX_VACATION_DAYS}
+                                step={1}
+                                className="period-edit-input"
+                                value={vacationDays[i] ?? 0}
+                                onChange={(e) => setVacationDays(i, e.target.value)}
+                                data-testid={`vacation-days-${i}`}
+                            />
+                            <select
+                                className="period-edit-unit-select"
+                                aria-label={`${t.vacationDaysLabel} ${displayName(i)} — ${t.labelDurationUnit}`}
+                                value={vacationUnit[i] ?? 'workdays'}
+                                onChange={(e) =>
+                                    setVacationUnit(i, e.target.value as ExtraDurationUnit)
+                                }
+                                data-testid={`vacation-unit-${i}`}
+                            >
+                                <option value="workdays">{t.unitWorkdays}</option>
+                                <option value="days">{t.unitDays}</option>
+                            </select>
+                        </label>
+                        <p className="details-hint">{t.vacationDaysHint}</p>
 
                         <p className="details-sublabel">
                             {t.extraWeeksLabel(allowance.extraUntil8Weeks)}

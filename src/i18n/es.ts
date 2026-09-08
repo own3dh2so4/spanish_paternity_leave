@@ -149,7 +149,8 @@ export const es: TranslationKeys = {
     tooltipSwitchLang: 'Switch to English',
     tooltipSwitchTheme: (theme) => `Cambiar a modo ${theme === 'dark' ? 'claro' : 'oscuro'}`,
 
-    unitDays: 'días',
+    unitDays: 'días naturales',
+    unitWorkdays: 'días hábiles',
     unitWeeksShort: 'sem.',
     labelPeriodType: 'Tipo de período',
     labelDuration: 'Duración',
@@ -181,6 +182,9 @@ export const es: TranslationKeys = {
               ? 'Lactancia hasta los 12 meses. No se pueden adelantar semanas antes del parto.'
               : 'Pacto SERMAS: permiso retribuido desde la semana 37, 10 días retribuidos adicionales para la madre biológica y 30 días naturales de lactancia acumulada (hasta los 12 meses).',
     convenioDaysLabel: 'Días retribuidos adicionales de tu empresa o convenio',
+    vacationDaysLabel: 'Vacaciones tras el permiso',
+    vacationDaysHint:
+        'La mayoría de convenios las cuentan en días hábiles. Se añaden justo tras el permiso y se pueden editar después.',
     convenioDaysHint:
         'Días naturales que se añaden justo después del permiso de nacimiento. Deja 0 si no tienes.',
     extraWeeksLabel: (weeks) =>

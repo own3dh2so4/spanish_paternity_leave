@@ -15,6 +15,8 @@ export function makeInput(overrides: Partial<WizardInput> = {}): WizardInput {
         regimes: parentCount === 1 ? ['et'] : ['et', 'et'],
         convenioDays: parentCount === 1 ? [0] : [0, 0],
         useExtraWeeks: parentCount === 1 ? [true] : [true, true],
+        vacationDays: parentCount === 1 ? [0] : [0, 0],
+        vacationUnit: parentCount === 1 ? ['workdays'] : ['workdays', 'workdays'],
         leaveMode: 'together',
         firstParent: 0,
         babies: 1,

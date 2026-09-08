@@ -14,7 +14,7 @@ import {
     resizePeriod,
     shiftPeriodStart,
 } from '../calendarHelpers';
-import { daysBetween, parseLocalDate } from '../dates';
+import { countWorkingDays, daysBetween, parseLocalDate } from '../dates';
 
 const find = (parent: ComputedParentSchedule, key: string) =>
     parent.periods.find((p) => getPeriodKey(p) === key)!;
@@ -164,6 +164,67 @@ describe('extra periods', () => {
 
         const removed = removeExtraPeriod(withExtra, 0, 'ep-1', 0, false);
         expect(parentAt(removed, 0).periods.some((p) => p.extraId === 'ep-1')).toBe(false);
+    });
+
+    it.each([
+        ['days', 'days' as const, 10, 10],
+        ['weeks', 'weeks' as const, 2, 14],
+    ])('counts a holiday given in calendar %s as calendar days', (_l, unit, value, expected) => {
+        const data = makeData();
+        const next = addExtraPeriod(
+            data.schedule,
+            0,
+            { id: 'ep-1', presetKey: 'vacation', durationValue: value, durationUnit: unit },
+            0,
+            false,
+        );
+        const extra = find(parentAt(next, 0), 'ep-1');
+
+        expect(daysBetween(parseLocalDate(extra.startDate), parseLocalDate(extra.endDate))).toBe(
+            expected,
+        );
+        expect(extra.days).toBeNull();
+    });
+
+    it('counts a holiday given in working days Monday to Friday', () => {
+        const data = makeData();
+        const next = addExtraPeriod(
+            data.schedule,
+            0,
+            { id: 'ep-1', presetKey: 'vacation', durationValue: 10, durationUnit: 'workdays' },
+            0,
+            false,
+        );
+        const extra = find(parentAt(next, 0), 'ep-1');
+
+        expect(extra.days).toBe(10);
+        expect(
+            countWorkingDays(parseLocalDate(extra.startDate), parseLocalDate(extra.endDate)),
+        ).toBe(10);
+        // Ten working days always span more than ten calendar days once a weekend falls inside.
+        expect(
+            daysBetween(parseLocalDate(extra.startDate), parseLocalDate(extra.endDate)),
+        ).toBeGreaterThan(10);
+    });
+
+    it('keeps a working-day holiday in working days when a resize re-chains it', () => {
+        const data = makeData();
+        const withExtra = addExtraPeriod(
+            data.schedule,
+            0,
+            { id: 'ep-1', presetKey: 'vacation', durationValue: 10, durationUnit: 'workdays' },
+            0,
+            false,
+        );
+        const before = find(parentAt(withExtra, 0), 'ep-1');
+
+        const shrunk = resizePeriod(withExtra, 0, 'flexible', 4, 'weeks', 0, false);
+        const after = find(parentAt(shrunk, 0), 'ep-1');
+
+        expect(after.startDate < before.startDate).toBe(true);
+        expect(
+            countWorkingDays(parseLocalDate(after.startDate), parseLocalDate(after.endDate)),
+        ).toBe(10);
     });
 
     it('in optimized mode an extra on the first parent pushes the second parent', () => {

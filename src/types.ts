@@ -9,7 +9,7 @@ export type LeaveType =
     | 'lactancia'
     | 'extra';
 export type ColorPaletteId = 'indigo' | 'pink' | 'teal' | 'amber' | 'rose';
-export type EditUnit = 'days' | 'weeks' | 'months';
+export type EditUnit = 'days' | 'workdays' | 'weeks' | 'months';
 export type ExtraPresetKey = 'vacation' | 'parental' | 'unpaid' | 'custom' | 'flexible-extra';
 /** Which set of rules governs a parent: Estatuto de los Trabajadores, EBEP (public employee) or SERMAS pact. */
 export type Regime = 'et' | 'ebep' | 'sermas';
@@ -36,12 +36,15 @@ export interface DateMapEntry {
 
 export type DateMap = Record<string, DateMapEntry[]>;
 
+/** 'days' counts calendar days, 'workdays' counts Monday to Friday. */
+export type ExtraDurationUnit = 'days' | 'workdays' | 'weeks';
+
 export interface ExtraLeaveItem {
     id: string;
     presetKey: ExtraPresetKey;
     customName?: string;
     durationValue: number;
-    durationUnit: 'days' | 'weeks';
+    durationUnit: ExtraDurationUnit;
 }
 
 /** ISO date boundaries: startDate inclusive, endDate exclusive. */
@@ -49,7 +52,7 @@ export interface ComputedPeriod {
     type: LeaveType;
     startDate: string;
     endDate: string;
-    /** Working-day count for lactancia; null when the period is measured in calendar days. */
+    /** Working-day count when the period is measured in working days; null otherwise. */
     days: number | null;
     isExtra?: true;
     extraId?: string;
@@ -79,6 +82,9 @@ export interface WizardInput {
     convenioDays: number[];
     /** Whether each parent schedules the 2 (4 for a single parent) paid weeks now instead of keeping them until age 8. */
     useExtraWeeks: boolean[];
+    /** Holiday taken right after the leave, per parent, in the unit each convenio counts them. */
+    vacationDays: number[];
+    vacationUnit: ExtraDurationUnit[];
     leaveMode: LeaveMode;
     firstParent: number;
     babies: number;

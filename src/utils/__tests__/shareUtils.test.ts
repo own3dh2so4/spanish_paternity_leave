@@ -70,6 +70,13 @@ describe('validateWizardData', () => {
             },
         ],
         [
+            'unknown duration unit',
+            (d: Record<string, unknown>) => {
+                const s = d.schedule as { periods: Record<string, unknown>[] }[];
+                at(at(s, 0).periods, 0).durationUnit = 'fortnights';
+            },
+        ],
+        [
             'extra without preset',
             (d: Record<string, unknown>) => {
                 const s = d.schedule as { periods: Record<string, unknown>[] }[];

@@ -307,13 +307,19 @@ export function addExtraPeriod(
             (max, p) => (p.endDate > max ? p.endDate : max),
             '',
         );
-        const totalDays =
-            item.durationUnit === 'weeks' ? item.durationValue * 7 : item.durationValue;
+        const from = parseLocalDate(startDate);
+        const inWorkdays = item.durationUnit === 'workdays';
+        const end = inWorkdays
+            ? addWorkingDays(from, item.durationValue)
+            : addDays(
+                  from,
+                  item.durationUnit === 'weeks' ? item.durationValue * 7 : item.durationValue,
+              );
         const newPeriod: ComputedPeriod = {
             type: LEAVE_TYPES.EXTRA,
             startDate,
-            endDate: formatDateKey(addDays(parseLocalDate(startDate), totalDays)),
-            days: null,
+            endDate: formatDateKey(end),
+            days: inWorkdays ? item.durationValue : null,
             isExtra: true,
             extraId: item.id,
             extraPresetKey: item.presetKey,

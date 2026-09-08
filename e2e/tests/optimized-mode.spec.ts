@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { WizardPage } from '../page-objects/WizardPage';
 import { CalendarPage } from '../page-objects/CalendarPage';
-import { findOverlap } from '../utils/dateRanges';
 
 test.describe('Staggered (optimized) leave mode', () => {
     test('second parent starts flexible leave when the first parent returns to work', async ({
@@ -27,10 +26,14 @@ test.describe('Staggered (optimized) leave mode', () => {
         const mariaFlexible = await calendar.rangeOf(0, 'flexible');
         expect(mariaFlexible.start).toBe(carlosLastEnd);
 
-        const mariaEditable = await calendar.periodRanges(0, { includeFixed: false });
-        const carlosEditable = await calendar.periodRanges(1, { includeFixed: false });
-        expect(mariaEditable.length).toBeGreaterThan(0);
-        expect(carlosEditable.length).toBeGreaterThan(0);
-        expect(findOverlap(mariaEditable, carlosEditable)).toBeNull();
+        // Staggering buys a longer stretch of cover, so the flexible blocks are what
+        // must not overlap. María's lactancia deliberately sits on her return to work
+        // after the mandatory block, which is inside Carlos's leave.
+        const carlosFlexible = await calendar.rangeOf(1, 'flexible');
+        expect(mariaFlexible.start >= carlosFlexible.end).toBe(true);
+
+        const mariaMandatory = await calendar.rangeOf(0, 'mandatory');
+        const mariaLactancia = await calendar.rangeOf(0, 'lactancia');
+        expect(mariaLactancia.start).toBe(mariaMandatory.end);
     });
 });

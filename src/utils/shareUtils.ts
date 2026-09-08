@@ -5,12 +5,15 @@ import {
     MAX_ANTICIPATED_WEEKS,
     MAX_BABIES,
     MAX_CONVENIO_DAYS,
+    MAX_VACATION_DAYS,
     REGIMES,
     WIZARD_DATA_VERSION,
 } from '../constants';
 import type {
     ComputedParentSchedule,
     ComputedPeriod,
+    EditUnit,
+    ExtraDurationUnit,
     ExtraPresetKey,
     LeaveType,
     Regime,
@@ -25,6 +28,8 @@ export interface SharedPayload {
 }
 
 const LEAVE_TYPE_VALUES: LeaveType[] = Object.values(LEAVE_TYPES);
+const EDIT_UNIT_VALUES: EditUnit[] = ['days', 'workdays', 'weeks', 'months'];
+const EXTRA_DURATION_UNIT_VALUES: ExtraDurationUnit[] = ['days', 'workdays', 'weeks'];
 const EXTRA_PRESET_VALUES: ExtraPresetKey[] = [
     'vacation',
     'parental',
@@ -57,6 +62,9 @@ function isPeriod(x: unknown): x is ComputedPeriod {
         }
     }
     if (x.durationValue !== undefined && !isInt(x.durationValue, 0, 10_000)) return false;
+    if (x.durationUnit !== undefined && !EDIT_UNIT_VALUES.includes(x.durationUnit as EditUnit)) {
+        return false;
+    }
     return true;
 }
 
@@ -93,6 +101,11 @@ export function validateWizardData(x: unknown): WizardData | null {
     if (!x.convenioDays.every((d) => isInt(d, 0, MAX_CONVENIO_DAYS))) return null;
     if (!Array.isArray(x.useExtraWeeks) || x.useExtraWeeks.length !== count) return null;
     if (!x.useExtraWeeks.every((v) => typeof v === 'boolean')) return null;
+    if (!Array.isArray(x.vacationDays) || x.vacationDays.length !== count) return null;
+    if (!x.vacationDays.every((d) => isInt(d, 0, MAX_VACATION_DAYS))) return null;
+    if (!Array.isArray(x.vacationUnit) || x.vacationUnit.length !== count) return null;
+    if (!x.vacationUnit.every((u) => EXTRA_DURATION_UNIT_VALUES.includes(u as ExtraDurationUnit)))
+        return null;
     if (x.leaveMode !== 'together' && x.leaveMode !== 'optimized') return null;
     if (!isInt(x.firstParent, 0, 1)) return null;
     if (!isInt(x.babies, 1, MAX_BABIES)) return null;
@@ -110,6 +123,8 @@ export function validateWizardData(x: unknown): WizardData | null {
         regimes: x.regimes as Regime[],
         convenioDays: x.convenioDays as number[],
         useExtraWeeks: x.useExtraWeeks as boolean[],
+        vacationDays: x.vacationDays as number[],
+        vacationUnit: x.vacationUnit as ExtraDurationUnit[],
         leaveMode: x.leaveMode,
         firstParent: x.firstParent,
         babies: x.babies,

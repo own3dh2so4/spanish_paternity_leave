@@ -5,7 +5,7 @@ import { isFixedPeriod } from './leaveLaw';
 
 export function recomputeEnd(newStartIso: string, period: ComputedPeriod): string {
     const newStart = parseLocalDate(newStartIso);
-    if (period.type === LEAVE_TYPES.LACTANCIA && period.days !== null) {
+    if (period.days !== null) {
         return formatDateKey(addWorkingDays(newStart, period.days));
     }
     const calDuration = daysBetween(
@@ -107,12 +107,20 @@ export function cascadeAllFromEdit(
         if (secondSplit.editable.length > 0 && firstLastEnd) {
             const secondAnchor = mandatoryEndOf(second.periods);
             const constraintStart = firstLastEnd > secondAnchor ? firstLastEnd : secondAnchor;
+
+            // A lactancia leading the chain is taken on going back to work after the
+            // mandatory block, so it stays anchored there while the rest waits.
+            const [head, ...tail] = secondSplit.editable;
+            const staysOnReturn = head?.type === LEAVE_TYPES.LACTANCIA;
+            const onReturn = staysOnReturn && head ? tightCascadeAll([head], secondAnchor) : [];
+            const waiting = tightCascadeAll(
+                staysOnReturn ? tail : secondSplit.editable,
+                constraintStart,
+            );
+
             result[secondIdx] = {
                 ...second,
-                periods: [
-                    ...secondSplit.fixed,
-                    ...tightCascadeAll(secondSplit.editable, constraintStart),
-                ],
+                periods: [...secondSplit.fixed, ...onReturn, ...waiting],
             };
         }
     }

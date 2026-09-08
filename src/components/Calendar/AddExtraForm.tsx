@@ -1,5 +1,5 @@
 import { MAX_DURATION_VALUE } from '../../constants';
-import type { ComputedParentSchedule, ExtraPresetKey } from '../../types';
+import type { ComputedParentSchedule, ExtraDurationUnit, ExtraPresetKey } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
 import type { ScheduleEditor } from '../../hooks/useScheduleEditor';
 import { EXTRA_PRESETS } from '../../utils/calendarHelpers';
@@ -76,9 +76,10 @@ export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) 
                     aria-label={t.labelDurationUnit}
                     value={isFlexExtra ? 'weeks' : form.durationUnit}
                     disabled={isFlexExtra}
-                    onChange={(e) => editor.setDurationUnit(e.target.value as 'days' | 'weeks')}
+                    onChange={(e) => editor.setDurationUnit(e.target.value as ExtraDurationUnit)}
                 >
                     <option value="days">{t.unitDays}</option>
+                    <option value="workdays">{t.unitWorkdays}</option>
                     <option value="weeks">{t.unitWeeksShort}</option>
                 </select>
                 <button

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import Wizard from '../Wizard';
-import { WIZARD_DATA_VERSION } from '../../../constants';
+import { MAX_VACATION_DAYS, WIZARD_DATA_VERSION } from '../../../constants';
 import type { WizardInput } from '../../../types';
 import { at } from '../../../test-helpers';
 
@@ -163,5 +163,58 @@ describe('Wizard', () => {
         expect(
             screen.getByRole('radiogroup', { name: /4 paid weeks until age 8/i }),
         ).toBeInTheDocument();
+    });
+});
+
+describe('Wizard — holiday after the leave', () => {
+    const openDetailsForTwoParents = (onComplete: (data: WizardInput) => void) => {
+        render(<Wizard onComplete={onComplete} initialData={null} />);
+        setDueDate('01/10/2026');
+        next();
+        fireEvent.click(screen.getByTestId('parent-count-btn-2'));
+        next();
+        fireEvent.change(screen.getByTestId('parent-name-input-0'), { target: { value: 'Ana' } });
+        fireEvent.change(screen.getByTestId('parent-name-input-1'), { target: { value: 'Luis' } });
+        next();
+    };
+
+    it('asks for holiday per parent and defaults to working days', () => {
+        openDetailsForTwoParents(vi.fn());
+
+        expect(screen.getByTestId('vacation-days-0')).toHaveValue(0);
+        expect(screen.getByTestId('vacation-days-1')).toHaveValue(0);
+        expect(screen.getByTestId('vacation-unit-0')).toHaveValue('workdays');
+    });
+
+    it('carries the days and the unit into the completed plan', () => {
+        const onComplete = vi.fn();
+        openDetailsForTwoParents(onComplete);
+
+        fireEvent.change(screen.getByTestId('vacation-days-0'), { target: { value: '15' } });
+        fireEvent.change(screen.getByTestId('vacation-unit-1'), { target: { value: 'days' } });
+        fireEvent.change(screen.getByTestId('vacation-days-1'), { target: { value: '7' } });
+        next();
+        next();
+        next();
+
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({
+            vacationDays: [15, 7],
+            vacationUnit: ['workdays', 'days'],
+        });
+    });
+
+    it('clamps the days to the allowed range', () => {
+        const onComplete = vi.fn();
+        openDetailsForTwoParents(onComplete);
+
+        fireEvent.change(screen.getByTestId('vacation-days-0'), { target: { value: '999' } });
+        fireEvent.change(screen.getByTestId('vacation-days-1'), { target: { value: '-4' } });
+        next();
+        next();
+        next();
+
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({
+            vacationDays: [MAX_VACATION_DAYS, 0],
+        });
     });
 });

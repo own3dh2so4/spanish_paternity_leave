@@ -7,7 +7,14 @@ import StepDetails from './StepDetails';
 import StepLeaveMode from './StepLeaveMode';
 import StepFirstParent from './StepFirstParent';
 import { LEAVE_MODES, WIZARD_DATA_VERSION } from '../../constants';
-import type { ColorPaletteId, LeaveMode, Regime, WizardData, WizardInput } from '../../types';
+import type {
+    ColorPaletteId,
+    ExtraDurationUnit,
+    LeaveMode,
+    Regime,
+    WizardData,
+    WizardInput,
+} from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
 import HeaderControls from '../HeaderControls';
@@ -57,6 +64,12 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     );
     const [useExtraWeeks, setUseExtraWeeks] = useState<boolean[]>(() =>
         padTo2(initialData?.useExtraWeeks ?? [], true),
+    );
+    const [vacationDays, setVacationDays] = useState<number[]>(() =>
+        padTo2(initialData?.vacationDays ?? [], 0),
+    );
+    const [vacationUnit, setVacationUnit] = useState<ExtraDurationUnit[]>(() =>
+        padTo2(initialData?.vacationUnit ?? [], 'workdays'),
     );
 
     const motherIndex =
@@ -110,6 +123,8 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
             names: names.slice(0, parentCount).map((n) => n.trim()),
             colors: colors.slice(0, parentCount),
             regimes: regimes.slice(0, parentCount),
+            vacationDays: vacationDays.slice(0, parentCount),
+            vacationUnit: vacationUnit.slice(0, parentCount),
             convenioDays: convenioDays.slice(0, parentCount).map((d) => Math.max(0, Math.round(d))),
             useExtraWeeks: useExtraWeeks.slice(0, parentCount),
             leaveMode: effectiveMode,
@@ -156,6 +171,10 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
                         onChangeConvenioDays={(next) => setConvenioDays(padTo2(next, 0))}
                         useExtraWeeks={useExtraWeeks.slice(0, parentCount)}
                         onChangeUseExtraWeeks={(next) => setUseExtraWeeks(padTo2(next, true))}
+                        vacationDays={vacationDays.slice(0, parentCount)}
+                        onChangeVacationDays={(next) => setVacationDays(padTo2(next, 0))}
+                        vacationUnit={vacationUnit.slice(0, parentCount)}
+                        onChangeVacationUnit={(next) => setVacationUnit(padTo2(next, 'workdays'))}
                     />
                 );
             case 'leaveMode':

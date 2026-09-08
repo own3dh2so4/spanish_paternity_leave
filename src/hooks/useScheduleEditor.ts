@@ -4,6 +4,7 @@ import type {
     ComputedParentSchedule,
     ComputedPeriod,
     EditUnit,
+    ExtraDurationUnit,
     ExtraPresetKey,
     WizardData,
 } from '../types';
@@ -31,7 +32,7 @@ export interface ExtraForm {
     presetKey: ExtraPresetKey;
     customName: string;
     durationValue: number;
-    durationUnit: 'days' | 'weeks';
+    durationUnit: ExtraDurationUnit;
 }
 
 export interface ScheduleEditor {
@@ -67,7 +68,7 @@ export interface ScheduleEditor {
     setPreset: (key: ExtraPresetKey, parent: ComputedParentSchedule) => void;
     setCustomName: (v: string) => void;
     setDurationValue: (v: number) => void;
-    setDurationUnit: (u: 'days' | 'weeks') => void;
+    setDurationUnit: (u: ExtraDurationUnit) => void;
     confirmAdd: (parentIndex: number) => void;
     removeExtra: (parentIndex: number, extraId: string) => void;
 }

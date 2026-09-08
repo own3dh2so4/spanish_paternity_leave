@@ -11,6 +11,8 @@ export interface DetailsOptions {
     anticipatedWeeks?: 0 | 1 | 2 | 3 | 4;
 }
 
+export type VacationUnit = 'days' | 'workdays';
+
 export interface WizardOptions {
     dueDate?: string;
     parentCount?: 1 | 2;
@@ -18,6 +20,8 @@ export interface WizardOptions {
     details?: DetailsOptions;
     regimes?: Regime[];
     convenioDays?: number[];
+    vacationDays?: number[];
+    vacationUnits?: VacationUnit[];
     useExtraWeeks?: boolean[];
     leaveMode?: LeaveMode;
     firstParent?: 0 | 1;
@@ -119,6 +123,22 @@ export class WizardPage {
         await this.convenioDaysInput(parentIndex).fill(String(days));
     }
 
+    vacationDaysInput(parentIndex: number): Locator {
+        return this.page.getByTestId(`vacation-days-${parentIndex}`);
+    }
+
+    vacationUnitSelect(parentIndex: number): Locator {
+        return this.page.getByTestId(`vacation-unit-${parentIndex}`);
+    }
+
+    async setVacationDays(parentIndex: number, days: number) {
+        await this.vacationDaysInput(parentIndex).fill(String(days));
+    }
+
+    async setVacationUnit(parentIndex: number, unit: VacationUnit) {
+        await this.vacationUnitSelect(parentIndex).selectOption(unit);
+    }
+
     async setUseExtraWeeks(parentIndex: number, use: boolean) {
         await this.extraWeeksButton(parentIndex, use).click();
         await expect(this.extraWeeksButton(parentIndex, use)).toHaveAttribute(
@@ -149,6 +169,12 @@ export class WizardPage {
         }
         for (const [i, days] of (options.convenioDays ?? []).entries()) {
             await this.setConvenioDays(i, days);
+        }
+        for (const [i, unit] of (options.vacationUnits ?? []).entries()) {
+            await this.setVacationUnit(i, unit);
+        }
+        for (const [i, days] of (options.vacationDays ?? []).entries()) {
+            await this.setVacationDays(i, days);
         }
         for (const [i, use] of (options.useExtraWeeks ?? []).entries()) {
             await this.setUseExtraWeeks(i, use);

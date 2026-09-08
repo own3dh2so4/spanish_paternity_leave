@@ -122,6 +122,7 @@ export interface TranslationKeys {
     tooltipSwitchTheme: (theme: string) => string;
 
     unitDays: string;
+    unitWorkdays: string;
     unitWeeksShort: string;
     labelPeriodType: string;
     labelDuration: string;
@@ -144,6 +145,8 @@ export interface TranslationKeys {
     regimeHint: (regime: string) => string;
     convenioDaysLabel: string;
     convenioDaysHint: string;
+    vacationDaysLabel: string;
+    vacationDaysHint: string;
     extraWeeksLabel: (weeks: number) => string;
     extraWeeksHint: string;
     anticipatedNotAvailable: string;
@@ -303,7 +306,8 @@ export const en: TranslationKeys = {
     tooltipSwitchLang: 'Cambiar a español',
     tooltipSwitchTheme: (theme) => `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`,
 
-    unitDays: 'days',
+    unitDays: 'calendar days',
+    unitWorkdays: 'working days',
     unitWeeksShort: 'weeks',
     labelPeriodType: 'Period type',
     labelDuration: 'Duration',
@@ -335,6 +339,9 @@ export const en: TranslationKeys = {
               ? 'Lactancia until 12 months. No weeks can be taken before the birth.'
               : 'SERMAS pact: paid leave from week 37, 10 extra paid days for the biological mother and 30 calendar days of accumulated lactancia (until 12 months).',
     convenioDaysLabel: 'Extra paid days from your employer or agreement',
+    vacationDaysLabel: 'Holiday after the leave',
+    vacationDaysHint:
+        'Most collective agreements count holiday in working days. Added right after the leave, and editable later.',
     convenioDaysHint: 'Calendar days added right after the birth leave. Leave 0 if none.',
     extraWeeksLabel: (weeks) =>
         `Take the ${weeks} paid ${plural(weeks, 'week', 'weeks')} until age 8 now?`,
