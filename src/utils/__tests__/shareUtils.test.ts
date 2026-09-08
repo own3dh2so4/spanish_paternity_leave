@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { at } from '../../test-helpers';
 import LZString from 'lz-string';
 import { makeData } from '../../test-fixtures';
 import type { LeaveType, WizardInput } from '../../types';
@@ -65,14 +66,14 @@ describe('validateWizardData', () => {
             'period with inverted dates',
             (d: Record<string, unknown>) => {
                 const s = d.schedule as { periods: { startDate: string; endDate: string }[] }[];
-                s[0].periods[0].endDate = '2020-01-01';
+                at(at(s, 0).periods, 0).endDate = '2020-01-01';
             },
         ],
         [
             'extra without preset',
             (d: Record<string, unknown>) => {
                 const s = d.schedule as { periods: Record<string, unknown>[] }[];
-                s[0].periods.push({
+                at(s, 0).periods.push({
                     type: 'extra',
                     startDate: '2027-01-01',
                     endDate: '2027-01-08',

@@ -124,6 +124,15 @@ function currentGaps(parent: ComputedParentSchedule | undefined): number[] {
     return gapsOf(splitFixed(parent.periods).editable, mandatoryEndOf(parent.periods));
 }
 
+function locatePeriod(
+    parent: ComputedParentSchedule,
+    periodKey: string,
+): { index: number; period: ComputedPeriod } | null {
+    const index = parent.periods.findIndex((p) => getPeriodKey(p) === periodKey);
+    const period = parent.periods[index];
+    return period ? { index, period } : null;
+}
+
 function updateParent(
     schedule: ComputedParentSchedule[],
     parentIdx: number,
@@ -153,9 +162,9 @@ export function resizePeriod(
 ): ComputedParentSchedule[] {
     const gaps = currentGaps(schedule[parentIdx]);
     const localEdit = updateParent(schedule, parentIdx, (parent) => {
-        const idx = parent.periods.findIndex((p) => getPeriodKey(p) === periodKey);
-        if (idx < 0) return parent;
-        const period = parent.periods[idx];
+        const located = locatePeriod(parent, periodKey);
+        if (!located) return parent;
+        const { index, period } = located;
         const start = parseLocalDate(period.startDate);
 
         let updated: ComputedPeriod;
@@ -198,7 +207,7 @@ export function resizePeriod(
             };
         }
         const periods = [...parent.periods];
-        periods[idx] = updated;
+        periods[index] = updated;
         return { ...parent, periods };
     });
     return cascadeAllFromEdit(localEdit, parentIdx, firstParent, optimized, gaps);
@@ -215,17 +224,17 @@ export function shiftPeriodStart(
 ): ComputedParentSchedule[] {
     const gaps = currentGaps(schedule[parentIdx]);
     const localEdit = updateParent(schedule, parentIdx, (parent) => {
-        const idx = parent.periods.findIndex((p) => getPeriodKey(p) === periodKey);
-        if (idx < 0) return parent;
-        const period = parent.periods[idx];
-        const prevEnd = idx > 0 ? parent.periods[idx - 1].endDate : period.startDate;
+        const located = locatePeriod(parent, periodKey);
+        if (!located) return parent;
+        const { index, period } = located;
+        const prevEnd = parent.periods[index - 1]?.endDate ?? period.startDate;
         const effectiveStart = newStartIso >= prevEnd ? newStartIso : prevEnd;
         const editableIdx = splitFixed(parent.periods).editable.findIndex(
             (p) => getPeriodKey(p) === periodKey,
         );
         gaps[editableIdx] = daysBetween(parseLocalDate(prevEnd), parseLocalDate(effectiveStart));
         const periods = [...parent.periods];
-        periods[idx] = {
+        periods[index] = {
             ...period,
             startDate: effectiveStart,
             endDate: recomputeEnd(effectiveStart, period),
@@ -251,9 +260,12 @@ export function reorderPeriods(
         if (fromIdx < 0 || toIdx < 0) return parent;
         const reordered = [...editable];
         const [removed] = reordered.splice(fromIdx, 1);
+        if (!removed) return parent;
         reordered.splice(toIdx, 0, removed);
         const anchor =
-            fixed.find((p) => p.type === LEAVE_TYPES.MANDATORY)?.endDate ?? editable[0].startDate;
+            fixed.find((p) => p.type === LEAVE_TYPES.MANDATORY)?.endDate ??
+            editable[0]?.startDate ??
+            '';
         return { ...parent, periods: [...fixed, ...tightCascadeAll(reordered, anchor)] };
     });
     return cascadeAllFromEdit(localEdit, parentIdx, firstParent, optimized, 'tight');

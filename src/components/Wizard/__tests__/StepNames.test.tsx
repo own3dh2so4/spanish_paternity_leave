@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import StepNames from '../StepNames';
 import { COLOR_PALETTES } from '../../../constants';
 import type { ColorPaletteId } from '../../../types';
+import { at } from '../../../test-helpers';
 
 function renderStep(
     names: string[],
@@ -23,7 +24,8 @@ function renderStep(
     return { onChangeNames, onChangeColors };
 }
 
-const swatchesFor = (parentIndex: number) => within(screen.getAllByRole('radiogroup')[parentIndex]);
+const swatchesFor = (parentIndex: number) =>
+    within(at(screen.getAllByRole('radiogroup'), parentIndex, 'colour picker'));
 
 describe('StepNames', () => {
     it('renders one name field and colour picker per parent', () => {

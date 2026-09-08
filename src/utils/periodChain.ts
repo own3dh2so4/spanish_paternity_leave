@@ -28,9 +28,11 @@ export function tightCascadeAll(periods: ComputedPeriod[], anchorEnd: string): C
 
 /** Calendar-day gap of each editable period relative to its predecessor (or `anchorEnd` for the first). */
 export function gapsOf(editable: ComputedPeriod[], anchorEnd: string): number[] {
-    return editable.map((p, i) => {
-        const prevEnd = i === 0 ? anchorEnd : editable[i - 1].endDate;
-        return Math.max(0, daysBetween(parseLocalDate(prevEnd), parseLocalDate(p.startDate)));
+    let prevEnd = anchorEnd;
+    return editable.map((p) => {
+        const gap = Math.max(0, daysBetween(parseLocalDate(prevEnd), parseLocalDate(p.startDate)));
+        prevEnd = p.endDate;
+        return gap;
     });
 }
 
@@ -81,11 +83,11 @@ export function cascadeAllFromEdit(
     optimized: boolean,
     gaps: number[] | 'tight' = 'tight',
 ): ComputedParentSchedule[] {
-    if (editedParentIdx < 0 || editedParentIdx >= schedule.length) return schedule;
-
     const result = schedule.map((p) => ({ ...p, periods: [...p.periods] }));
 
     const edited = result[editedParentIdx];
+    if (!edited) return schedule;
+
     const { fixed, editable } = splitFixed(edited.periods);
     const anchor = mandatoryEndOf(edited.periods);
     const cascaded =
@@ -96,8 +98,11 @@ export function cascadeAllFromEdit(
 
     if (optimized && result.length === 2) {
         const secondIdx = firstParent === 0 ? 1 : 0;
-        const firstLastEnd = lastEndOf(result[firstParent].periods);
+        const first = result[firstParent];
         const second = result[secondIdx];
+        if (!first || !second) return result;
+
+        const firstLastEnd = lastEndOf(first.periods);
         const secondSplit = splitFixed(second.periods);
         if (secondSplit.editable.length > 0 && firstLastEnd) {
             const secondAnchor = mandatoryEndOf(second.periods);

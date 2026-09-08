@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { at, missing, parentAt } from '../../test-helpers';
 import type { ComputedParentSchedule, ComputedPeriod, LeaveType } from '../../types';
 import {
     cascadeAllFromEdit,
@@ -158,7 +159,7 @@ describe('cascadeAllFromEdit', () => {
             ]),
         ];
 
-        const [result] = cascadeAllFromEdit(schedule, 0, 0, false);
+        const [result = missing('result')] = cascadeAllFromEdit(schedule, 0, 0, false);
 
         expect(result.periods.map((x) => `${x.type} ${range(x)}`)).toEqual([
             'mandatory 2026-03-02→2026-04-13',
@@ -175,7 +176,13 @@ describe('cascadeAllFromEdit', () => {
         ];
         const gaps = gapsOf(splitFixed(periods).editable, mandatoryEndOf(periods));
 
-        const [result] = cascadeAllFromEdit([parent(periods)], 0, 0, false, gaps);
+        const [result = missing('result')] = cascadeAllFromEdit(
+            [parent(periods)],
+            0,
+            0,
+            false,
+            gaps,
+        );
 
         expect(result.periods.map(range)).toEqual([
             '2026-03-02→2026-04-13',
@@ -193,7 +200,7 @@ describe('cascadeAllFromEdit', () => {
 
         const result = cascadeAllFromEdit(schedule, 0, 0, false);
 
-        expect(result[1].periods).toEqual(second.periods);
+        expect(parentAt(result, 1).periods).toEqual(second.periods);
     });
 
     it('pushes the second parent past the first in optimized mode', () => {
@@ -204,15 +211,17 @@ describe('cascadeAllFromEdit', () => {
 
         const result = cascadeAllFromEdit(schedule, 0, 0, true);
 
-        expect(result[0].periods.map(range)).toEqual([
+        expect(parentAt(result, 0).periods.map(range)).toEqual([
             '2026-03-02→2026-04-13',
             '2026-04-13→2026-06-29',
         ]);
-        expect(result[1].periods.map(range)).toEqual([
+        expect(parentAt(result, 1).periods.map(range)).toEqual([
             '2026-03-02→2026-04-13',
             '2026-06-29→2026-09-14',
         ]);
-        expect(result[1].periods[1].startDate).toBe(result[0].periods[1].endDate);
+        expect(at(parentAt(result, 1).periods, 1).startDate).toBe(
+            at(parentAt(result, 0).periods, 1).endDate,
+        );
     });
 
     it('honours firstParent = 1 when deciding who waits', () => {
@@ -223,11 +232,13 @@ describe('cascadeAllFromEdit', () => {
 
         const result = cascadeAllFromEdit(schedule, 1, 1, true);
 
-        expect(result[1].periods.map(range)).toEqual([
+        expect(parentAt(result, 1).periods.map(range)).toEqual([
             '2026-03-02→2026-04-13',
             '2026-04-13→2026-06-29',
         ]);
-        expect(result[0].periods[1].startDate).toBe(result[1].periods[1].endDate);
+        expect(at(parentAt(result, 0).periods, 1).startDate).toBe(
+            at(parentAt(result, 1).periods, 1).endDate,
+        );
     });
 
     it('keeps the second parent on their own anchor when the first finishes earlier', () => {
@@ -241,9 +252,23 @@ describe('cascadeAllFromEdit', () => {
 
         const result = cascadeAllFromEdit(schedule, 0, 0, true);
 
-        expect(result[1].periods.map(range)).toEqual([
+        expect(parentAt(result, 1).periods.map(range)).toEqual([
             '2026-06-01→2026-07-13',
             '2026-07-13→2026-07-27',
+        ]);
+    });
+
+    it('leaves the second parent alone when firstParent is out of range', () => {
+        const schedule = [
+            parent([...fixedHead, p('flexible', '2026-04-13', '2026-06-29')]),
+            parent([...fixedHead, p('flexible', '2026-04-13', '2026-06-29')]),
+        ];
+
+        const result = cascadeAllFromEdit(schedule, 0, 5, true);
+
+        expect(parentAt(result, 1).periods.map(range)).toEqual([
+            '2026-03-02→2026-04-13',
+            '2026-04-13→2026-06-29',
         ]);
     });
 

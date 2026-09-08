@@ -143,10 +143,12 @@ export const COLOR_PALETTES: Record<ColorPaletteId, ColorPalette> = {
 };
 
 export const PALETTE_IDS = Object.keys(COLOR_PALETTES) as ColorPaletteId[];
+export const DEFAULT_PALETTE_ID: ColorPaletteId = 'indigo';
 
 export function paletteFor(colorId: string | undefined, index: number): ColorPalette {
     if (colorId && colorId in COLOR_PALETTES) return COLOR_PALETTES[colorId as ColorPaletteId];
-    return COLOR_PALETTES[PALETTE_IDS[index % PALETTE_IDS.length]];
+    const cycled = PALETTE_IDS[Math.abs(index) % PALETTE_IDS.length] ?? DEFAULT_PALETTE_ID;
+    return COLOR_PALETTES[cycled];
 }
 
 const LIGHT_INK = '#FFFFFF';

@@ -5,6 +5,10 @@ import { makeData } from '../../../test-fixtures';
 import { EXTRA_PRESETS, getPeriodKey, resizePeriod } from '../../../utils/calendarHelpers';
 import { getRemainingFlexWeeks } from '../../../utils/leaveLaw';
 import type { WizardData } from '../../../types';
+import { at, lastOf, parentAt } from '../../../test-helpers';
+
+const cardAt = (index: number) =>
+    at(screen.getAllByTestId(/^summary-card-/), index, 'summary card');
 
 function renderView(data: WizardData) {
     const onUpdateData = vi.fn();
@@ -21,7 +25,7 @@ describe('CalendarView', () => {
         renderView(makeData());
         const cards = screen.getAllByTestId(/^summary-card-/);
         expect(cards).toHaveLength(2);
-        const first = within(cards[0]);
+        const first = within(at(cards, 0));
         expect(first.getByTestId('period-row-mandatory')).toHaveTextContent(
             /Mandatory leave \(6 weeks\)/,
         );
@@ -39,10 +43,10 @@ describe('CalendarView', () => {
     it('shows the anticipated block as a fixed row for the biological mother', () => {
         renderView(makeData({ biologicalMother: 0, anticipatedWeeks: 2 }));
         const cards = screen.getAllByTestId(/^summary-card-/);
-        expect(within(cards[0]).getByTestId('period-row-anticipated')).toHaveTextContent(
+        expect(within(at(cards, 0)).getByTestId('period-row-anticipated')).toHaveTextContent(
             /Before the birth \(2 weeks\)/,
         );
-        expect(within(cards[1]).queryByTestId('period-row-anticipated')).toBeNull();
+        expect(within(at(cards, 1)).queryByTestId('period-row-anticipated')).toBeNull();
     });
 
     it('shows 32 weeks for a single parent', () => {
@@ -53,45 +57,45 @@ describe('CalendarView', () => {
 
     it('edits the flexible duration through the keyboard-accessible button', () => {
         const { onUpdateData } = renderView(makeData());
-        const card = screen.getAllByTestId(/^summary-card-/)[0];
+        const card = cardAt(0);
         fireEvent.click(within(card).getByRole('button', { name: /Flexible leave \(11 weeks\)/ }));
         const input = within(card).getByRole('spinbutton');
         fireEvent.change(input, { target: { value: '8' } });
         fireEvent.keyDown(input, { key: 'Enter' });
         expect(onUpdateData).toHaveBeenCalledTimes(1);
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const flex = next.schedule[0].periods.find((p) => p.type === 'flexible')!;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const flex = parentAt(next.schedule, 0).periods.find((p) => p.type === 'flexible')!;
         expect(flex.endDate).toBe('2027-01-07');
     });
 
     it('moves a period with the arrow buttons', () => {
         const { onUpdateData } = renderView(makeData());
-        const card = screen.getAllByTestId(/^summary-card-/)[0];
+        const card = cardAt(0);
         const lactRow = within(card).getByTestId('period-row-lactancia');
         fireEvent.click(within(lactRow).getByRole('button', { name: 'Move earlier' }));
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const types = next.schedule[0].periods.map((p) => p.type);
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const types = parentAt(next.schedule, 0).periods.map((p) => p.type);
         expect(types).toEqual(['mandatory', 'lactancia', 'flexible', 'cuidado']);
     });
 
     it('adds an extra period from the form', () => {
         const { onUpdateData } = renderView(makeData());
-        const card = screen.getAllByTestId(/^summary-card-/)[1];
+        const card = cardAt(1);
         fireEvent.click(within(card).getByTestId('add-period-btn'));
         fireEvent.click(within(card).getByTestId('add-extra-confirm'));
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const added = next.schedule[1].periods[next.schedule[1].periods.length - 1];
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const added = lastOf(parentAt(next.schedule, 1).periods, 'period');
         expect(added.extraPresetKey).toBe('vacation');
-        expect(next.schedule[0].periods.some((p) => p.isExtra)).toBe(false);
+        expect(parentAt(next.schedule, 0).periods.some((p) => p.isExtra)).toBe(false);
     });
 
     it('warns when a flexible block ends after the first birthday', () => {
         const data = makeData();
-        const flex = data.schedule[0].periods.find((p) => p.type === 'flexible')!;
+        const flex = parentAt(data.schedule, 0).periods.find((p) => p.type === 'flexible')!;
         flex.startDate = '2027-09-01';
         flex.endDate = '2027-11-17';
         renderView(data);
-        expect(screen.getAllByTestId('period-warning')[0]).toHaveTextContent(/12 months/);
+        expect(at(screen.getAllByTestId('period-warning'), 0)).toHaveTextContent(/12 months/);
     });
 
     it('wires header actions', () => {
@@ -113,7 +117,7 @@ describe('CalendarView', () => {
         renderView(
             makeData({ regimes: ['sermas', 'et'], convenioDays: [10, 0], biologicalMother: 0 }),
         );
-        const card = screen.getAllByTestId(/^summary-card-/)[0];
+        const card = cardAt(0);
         expect(within(card).getByTestId('period-row-gestation')).toHaveTextContent(
             /Paid leave before the birth \(4 weeks\)/,
         );
@@ -126,14 +130,14 @@ describe('CalendarView', () => {
     it('shows no weeks-until-8 row for a parent who kept them for later', () => {
         renderView(makeData({ useExtraWeeks: [false, true] }));
         const cards = screen.getAllByTestId(/^summary-card-/);
-        expect(within(cards[0]).queryByTestId('period-row-cuidado')).toBeNull();
-        expect(within(cards[1]).getByTestId('period-row-cuidado')).toBeInTheDocument();
+        expect(within(at(cards, 0)).queryByTestId('period-row-cuidado')).toBeNull();
+        expect(within(at(cards, 1)).getByTestId('period-row-cuidado')).toBeInTheDocument();
     });
 });
 
 describe('CalendarView — the add-extra form', () => {
     const openForm = (cardIndex: number) => {
-        const card = screen.getAllByTestId(/^summary-card-/)[cardIndex];
+        const card = cardAt(cardIndex);
         fireEvent.click(within(card).getByTestId('add-period-btn'));
         return within(card);
     };
@@ -170,8 +174,10 @@ describe('CalendarView — the add-extra form', () => {
         fireEvent.change(form.getByLabelText('Period name…'), { target: { value: 'Sabbatical' } });
         fireEvent.click(form.getByTestId('add-extra-confirm'));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        expect(next.schedule[0].periods.find((p) => p.isExtra)?.extraName).toBe('Sabbatical');
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        expect(parentAt(next.schedule, 0).periods.find((p) => p.isExtra)?.extraName).toBe(
+            'Sabbatical',
+        );
     });
 
     it('adds the typed duration in the chosen unit', () => {
@@ -182,8 +188,8 @@ describe('CalendarView — the add-extra form', () => {
         fireEvent.change(form.getByLabelText('Duration'), { target: { value: '5' } });
         fireEvent.click(form.getByTestId('add-extra-confirm'));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const added = next.schedule[0].periods.find((p) => p.isExtra)!;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const added = parentAt(next.schedule, 0).periods.find((p) => p.isExtra)!;
         expect(
             (new Date(added.endDate).getTime() - new Date(added.startDate).getTime()) / 86_400_000,
         ).toBe(5);
@@ -191,7 +197,7 @@ describe('CalendarView — the add-extra form', () => {
 
     it('locks the unit to weeks for the flexible remainder and caps it at the quota left', () => {
         const shrunk = makeData();
-        const flexible = shrunk.schedule[0].periods.find((p) => p.type === 'flexible')!;
+        const flexible = parentAt(shrunk.schedule, 0).periods.find((p) => p.type === 'flexible')!;
         shrunk.schedule = resizePeriod(
             shrunk.schedule,
             0,
@@ -201,7 +207,7 @@ describe('CalendarView — the add-extra form', () => {
             shrunk.firstParent,
             false,
         );
-        const remaining = getRemainingFlexWeeks(shrunk.schedule[0]);
+        const remaining = getRemainingFlexWeeks(parentAt(shrunk.schedule, 0));
         expect(remaining).toBeGreaterThan(0);
 
         const { onUpdateData } = renderView(shrunk);
@@ -214,8 +220,8 @@ describe('CalendarView — the add-extra form', () => {
         fireEvent.change(form.getByLabelText('Duration'), { target: { value: '99' } });
         fireEvent.click(form.getByTestId('add-extra-confirm'));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const added = next.schedule[0].periods.find((p) => p.isExtra)!;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const added = parentAt(next.schedule, 0).periods.find((p) => p.isExtra)!;
         const weeks =
             (new Date(added.endDate).getTime() - new Date(added.startDate).getTime()) /
             (7 * 86_400_000);
@@ -248,7 +254,7 @@ describe('CalendarView — the add-extra form', () => {
 
 describe('CalendarView — editing a period row', () => {
     const editorFor = (cardIndex: number, type: string) => {
-        const card = screen.getAllByTestId(/^summary-card-/)[cardIndex];
+        const card = cardAt(cardIndex);
         const row = within(card).getByTestId(`period-row-${type}`);
         fireEvent.click(within(row).getByRole('button', { name: /Edit duration/ }));
         return within(row);
@@ -275,8 +281,8 @@ describe('CalendarView — editing a period row', () => {
         fireEvent.change(row.getByLabelText('Duration'), { target: { value: '5' } });
         fireEvent.keyDown(row.getByLabelText('Duration'), { key: 'Enter' });
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const flex = next.schedule[0].periods.find((p) => p.type === 'flexible')!;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const flex = parentAt(next.schedule, 0).periods.find((p) => p.type === 'flexible')!;
         expect(
             (new Date(flex.endDate).getTime() - new Date(flex.startDate).getTime()) /
                 (7 * 86_400_000),
@@ -292,7 +298,7 @@ describe('CalendarView — editing a period row', () => {
 
     it('offers a delete button only for extra periods', () => {
         const { onUpdateData } = renderView(makeData());
-        const card = screen.getAllByTestId(/^summary-card-/)[0];
+        const card = cardAt(0);
         fireEvent.click(within(card).getByTestId('add-period-btn'));
         fireEvent.click(within(card).getByTestId('add-extra-confirm'));
 
@@ -310,11 +316,11 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Change due date' }));
         fireEvent.click(screen.getByRole('gridcell', { name: 'Choose Thursday, 15 October 2026' }));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
         expect(next.dueDate).toBe('2026-10-15');
-        expect(next.schedule[0].periods.find((p) => p.type === 'mandatory')!.startDate).toBe(
-            '2026-10-15',
-        );
+        expect(
+            parentAt(next.schedule, 0).periods.find((p) => p.type === 'mandatory')!.startDate,
+        ).toBe('2026-10-15');
     });
 
     it('ignores picking the due date it already has', () => {
@@ -355,19 +361,19 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
 
     it('hides and shows a parent without touching the plan', () => {
         const { onUpdateData } = renderView(makeData());
-        const card = screen.getAllByTestId(/^summary-card-/)[1];
+        const card = cardAt(1);
         const toggle = within(card).getByRole('button', { name: 'Hide this parent' });
 
         fireEvent.click(toggle);
 
-        const shown = within(screen.getAllByTestId(/^summary-card-/)[1]).getByRole('button', {
+        const shown = within(cardAt(1)).getByRole('button', {
             name: 'Show this parent',
         });
         expect(shown).toHaveAttribute('aria-pressed', 'true');
 
         fireEvent.click(shown);
         expect(
-            within(screen.getAllByTestId(/^summary-card-/)[1]).getByRole('button', {
+            within(cardAt(1)).getByRole('button', {
                 name: 'Hide this parent',
             }),
         ).toHaveAttribute('aria-pressed', 'false');
@@ -377,22 +383,24 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
     it('resets one parent to the standard schedule and leaves the other alone', () => {
         const data = makeData();
         const edited = structuredClone(data);
-        edited.schedule[0].periods.find((p) => p.type === 'flexible')!.endDate = '2027-03-01';
-        edited.schedule[1].periods.find((p) => p.type === 'flexible')!.endDate = '2027-03-01';
+        parentAt(edited.schedule, 0).periods.find((p) => p.type === 'flexible')!.endDate =
+            '2027-03-01';
+        parentAt(edited.schedule, 1).periods.find((p) => p.type === 'flexible')!.endDate =
+            '2027-03-01';
         const { onUpdateData } = renderView(edited);
 
-        const card = screen.getAllByTestId(/^summary-card-/)[0];
+        const card = cardAt(0);
         fireEvent.click(
             within(card).getByRole('button', {
                 name: 'Reset this parent to the standard schedule',
             }),
         );
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        expect(next.schedule[0].periods.find((p) => p.type === 'flexible')!.endDate).toBe(
-            data.schedule[0].periods.find((p) => p.type === 'flexible')!.endDate,
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        expect(parentAt(next.schedule, 0).periods.find((p) => p.type === 'flexible')!.endDate).toBe(
+            parentAt(data.schedule, 0).periods.find((p) => p.type === 'flexible')!.endDate,
         );
-        expect(next.schedule[1].periods.find((p) => p.type === 'flexible')!.endDate).toBe(
+        expect(parentAt(next.schedule, 1).periods.find((p) => p.type === 'flexible')!.endDate).toBe(
             '2027-03-01',
         );
     });
@@ -400,11 +408,7 @@ describe('CalendarView — header, sharing and per-parent controls', () => {
 
 describe('CalendarView — moving a period start date and deleting an extra', () => {
     const rowIn = (cardIndex: number, type: string) =>
-        within(
-            within(screen.getAllByTestId(/^summary-card-/)[cardIndex]).getByTestId(
-                `period-row-${type}`,
-            ),
-        );
+        within(within(cardAt(cardIndex)).getByTestId(`period-row-${type}`));
 
     const openStartDatePicker = (cardIndex: number, type: string) =>
         fireEvent.click(rowIn(cardIndex, type).getByRole('button', { name: /Edit start date$/ }));
@@ -424,9 +428,9 @@ describe('CalendarView — moving a period start date and deleting an extra', ()
 
         fireEvent.click(screen.getByRole('gridcell', { name: 'Choose Monday, 30 November 2026' }));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        const flexible = next.schedule[0].periods.find((p) => p.type === 'flexible')!;
-        const lactancia = next.schedule[0].periods.find((p) => p.type === 'lactancia')!;
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        const flexible = parentAt(next.schedule, 0).periods.find((p) => p.type === 'flexible')!;
+        const lactancia = parentAt(next.schedule, 0).periods.find((p) => p.type === 'lactancia')!;
         expect(flexible.startDate).toBe('2026-11-30');
         expect(lactancia.startDate).toBe(flexible.endDate);
     });
@@ -437,10 +441,10 @@ describe('CalendarView — moving a period start date and deleting an extra', ()
         render(
             <CalendarView data={base} onEdit={vi.fn()} onReset={vi.fn()} onUpdateData={seeded} />,
         );
-        const seedCard = screen.getAllByTestId(/^summary-card-/)[0];
+        const seedCard = cardAt(0);
         fireEvent.click(within(seedCard).getByTestId('add-period-btn'));
         fireEvent.click(within(seedCard).getByTestId('add-extra-confirm'));
-        const withExtra = seeded.mock.calls[0][0] as WizardData;
+        const withExtra = at(seeded.mock.calls, 0)[0] as WizardData;
         cleanup();
 
         const { onUpdateData } = renderView(withExtra);
@@ -448,7 +452,7 @@ describe('CalendarView — moving a period start date and deleting an extra', ()
 
         fireEvent.click(rowIn(0, 'vacation').getByRole('button', { name: /^Remove/ }));
 
-        const next = onUpdateData.mock.calls[0][0] as WizardData;
-        expect(next.schedule[0].periods.some((p) => p.isExtra)).toBe(false);
+        const next = at(onUpdateData.mock.calls, 0)[0] as WizardData;
+        expect(parentAt(next.schedule, 0).periods.some((p) => p.isExtra)).toBe(false);
     });
 });

@@ -15,12 +15,12 @@ interface TimeBlock {
 }
 
 export function mergeTimeBlocks(blocks: TimeBlock[]): TimeBlock[] {
-    if (blocks.length === 0) return [];
-    const sorted = [...blocks].sort((a, b) => a.start.getTime() - b.start.getTime());
+    const [earliest, ...rest] = [...blocks].sort((a, b) => a.start.getTime() - b.start.getTime());
+    if (!earliest) return [];
+
     const merged: TimeBlock[] = [];
-    let current = { ...sorted[0] };
-    for (let i = 1; i < sorted.length; i++) {
-        const next = sorted[i];
+    let current: TimeBlock = { ...earliest };
+    for (const next of rest) {
         if (next.start <= current.end) {
             if (next.end > current.end) current.end = new Date(next.end);
         } else {

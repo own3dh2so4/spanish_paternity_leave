@@ -2,15 +2,21 @@ import type { Language } from '../i18n/LanguageContext';
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** NaN for a malformed string, which turns into an Invalid Date downstream. */
+function isoParts(iso: string): [year: number, month: number, day: number] {
+    const [y = NaN, m = NaN, d = NaN] = iso.split('-').map(Number);
+    return [y, m, d];
+}
+
 export function isIsoDate(value: unknown): value is string {
     if (typeof value !== 'string' || !ISO_DATE_RE.test(value)) return false;
-    const [y, m, d] = value.split('-').map(Number);
+    const [y, m, d] = isoParts(value);
     const date = new Date(y, m - 1, d);
     return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
 }
 
 export function parseLocalDate(iso: string): Date {
-    const [y, m, d] = iso.split('-').map(Number);
+    const [y, m, d] = isoParts(iso);
     return new Date(y, m - 1, d);
 }
 

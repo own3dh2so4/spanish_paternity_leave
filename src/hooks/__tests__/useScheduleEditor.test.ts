@@ -6,6 +6,7 @@ import type { ComputedPeriod, WizardData } from '../../types';
 import { getPeriodKey, periodCalendarWeeks } from '../../utils/calendarHelpers';
 import { parseLocalDate } from '../../utils/dates';
 import { useScheduleEditor } from '../useScheduleEditor';
+import { at, lastOf, parentAt } from '../../test-helpers';
 
 beforeAll(() => {
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
@@ -25,13 +26,13 @@ function setup(data: WizardData = makeData()) {
 }
 
 const find = (data: WizardData, parentIndex: number, type: string): ComputedPeriod =>
-    data.schedule[parentIndex].periods.find((p) => p.type === type)!;
+    parentAt(data.schedule, parentIndex).periods.find((p) => p.type === type)!;
 
 const keyOf = (data: WizardData, parentIndex: number, type: string) =>
     getPeriodKey(find(data, parentIndex, type));
 
 const periodOf = (data: WizardData, parentIndex: number, type: string) =>
-    data.schedule[parentIndex].periods.find((p) => p.type === type);
+    parentAt(data.schedule, parentIndex).periods.find((p) => p.type === type);
 
 describe('useScheduleEditor — duration editing', () => {
     it('seeds weeks for a flexible period', () => {
@@ -100,7 +101,7 @@ describe('useScheduleEditor — duration editing', () => {
         act(() => result.current.commitEdit());
 
         expect(updates).toHaveLength(1);
-        const flexible = periodOf(updates[0], 0, 'flexible')!;
+        const flexible = periodOf(at(updates, 0), 0, 'flexible')!;
         expect(
             (parseLocalDate(flexible.endDate).getTime() -
                 parseLocalDate(flexible.startDate).getTime()) /
@@ -112,18 +113,18 @@ describe('useScheduleEditor — duration editing', () => {
     it('clamps a resize to the maximum duration', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('vacation', data.schedule[0]));
+        act(() => result.current.setPreset('vacation', parentAt(data.schedule, 0)));
         act(() => result.current.confirmAdd(0));
 
-        const withExtra = updates[0];
-        const extra = withExtra.schedule[0].periods.find((p) => p.isExtra)!;
+        const withExtra = at(updates, 0);
+        const extra = parentAt(withExtra.schedule, 0).periods.find((p) => p.isExtra)!;
         const { result: resized, updates: resizedUpdates } = setup(withExtra);
 
         act(() => resized.current.startEditing(0, extra));
         act(() => resized.current.setEditValue('100000'));
         act(() => resized.current.commitEdit());
 
-        const clamped = resizedUpdates[0].schedule[0].periods.find(
+        const clamped = parentAt(at(resizedUpdates, 0).schedule, 0).periods.find(
             (p) => p.extraId === extra.extraId,
         )!;
         expect(resized.current.editUnit).toBe('weeks');
@@ -192,7 +193,7 @@ describe('useScheduleEditor — start date editing', () => {
         act(() => result.current.commitStartDate(parseLocalDate('2020-01-01')));
 
         expect(updates).toHaveLength(1);
-        expect(periodOf(updates[0], 0, 'flexible')!.startDate).toBe(min);
+        expect(periodOf(at(updates, 0), 0, 'flexible')!.startDate).toBe(min);
     });
 
     it('accepts a date after the minimum and closes the picker', () => {
@@ -209,7 +210,7 @@ describe('useScheduleEditor — start date editing', () => {
         );
         act(() => result.current.commitStartDate(parseLocalDate('2027-02-01')));
 
-        expect(periodOf(updates[0], 0, 'flexible')!.startDate).toBe('2027-02-01');
+        expect(periodOf(at(updates, 0), 0, 'flexible')!.startDate).toBe('2027-02-01');
         expect(result.current.editingStartDate).toBeNull();
         expect(result.current.editStartDateValue).toBeNull();
     });
@@ -284,13 +285,13 @@ describe('useScheduleEditor — drag and drop', () => {
 
     it('reorders on drop within the same parent', () => {
         const { result, updates, data } = setup();
-        const before = data.schedule[0].periods.map((p) => p.type);
+        const before = parentAt(data.schedule, 0).periods.map((p) => p.type);
 
         act(() => result.current.onDragStart(0, keyOf(data, 0, 'cuidado')));
         act(() => result.current.onDrop(dragEvent(), 0, keyOf(data, 0, 'flexible')));
 
         expect(updates).toHaveLength(1);
-        expect(updates[0].schedule[0].periods.map((p) => p.type)).not.toEqual(before);
+        expect(parentAt(at(updates, 0).schedule, 0).periods.map((p) => p.type)).not.toEqual(before);
         expect(result.current.draggingKey).toBeNull();
         expect(result.current.dragOverKey).toBeNull();
     });
@@ -329,8 +330,8 @@ describe('useScheduleEditor — drag and drop', () => {
         act(() => result.current.move(0, keyOf(data, 0, 'cuidado'), -1));
 
         expect(updates).toHaveLength(1);
-        expect(updates[0].schedule[0].periods.map((p) => p.type)).not.toEqual(
-            data.schedule[0].periods.map((p) => p.type),
+        expect(parentAt(at(updates, 0).schedule, 0).periods.map((p) => p.type)).not.toEqual(
+            parentAt(data.schedule, 0).periods.map((p) => p.type),
         );
     });
 });
@@ -352,7 +353,7 @@ describe('useScheduleEditor — extra periods', () => {
     it('seeds a preset with its own default duration', () => {
         const { result, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('parental', data.schedule[0]));
+        act(() => result.current.setPreset('parental', parentAt(data.schedule, 0)));
 
         expect(result.current.form.presetKey).toBe('parental');
         expect(result.current.form.durationValue).toBeGreaterThan(0);
@@ -362,7 +363,7 @@ describe('useScheduleEditor — extra periods', () => {
         const data = makeData({ useExtraWeeks: [false, false] });
         const { result } = setup(data);
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('flexible-extra', data.schedule[0]));
+        act(() => result.current.setPreset('flexible-extra', parentAt(data.schedule, 0)));
 
         expect(result.current.form.durationUnit).toBe('weeks');
         expect(result.current.form.durationValue).toBeGreaterThanOrEqual(1);
@@ -371,12 +372,12 @@ describe('useScheduleEditor — extra periods', () => {
     it('adds an extra period and resets the form', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('vacation', data.schedule[0]));
+        act(() => result.current.setPreset('vacation', parentAt(data.schedule, 0)));
         act(() => result.current.setDurationValue(3));
         act(() => result.current.setDurationUnit('days'));
         act(() => result.current.confirmAdd(0));
 
-        const added = updates[0].schedule[0].periods.find((p) => p.isExtra)!;
+        const added = parentAt(at(updates, 0).schedule, 0).periods.find((p) => p.isExtra)!;
         expect(added.extraPresetKey).toBe('vacation');
         expect(
             (parseLocalDate(added.endDate).getTime() - parseLocalDate(added.startDate).getTime()) /
@@ -394,29 +395,29 @@ describe('useScheduleEditor — extra periods', () => {
     it('keeps the typed name for a custom period', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('custom', data.schedule[0]));
+        act(() => result.current.setPreset('custom', parentAt(data.schedule, 0)));
         act(() => result.current.setCustomName('  Sabbatical  '));
         act(() => result.current.confirmAdd(0));
 
-        const added = updates[0].schedule[0].periods.filter((p) => p.isExtra);
-        expect(added[added.length - 1].extraName).toBe('Sabbatical');
+        const added = parentAt(at(updates, 0).schedule, 0).periods.filter((p) => p.isExtra);
+        expect(lastOf(added, 'extra period').extraName).toBe('Sabbatical');
     });
 
     it('drops a blank custom name instead of storing whitespace', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('custom', data.schedule[0]));
+        act(() => result.current.setPreset('custom', parentAt(data.schedule, 0)));
         act(() => result.current.setCustomName('   '));
         act(() => result.current.confirmAdd(0));
 
-        const added = updates[0].schedule[0].periods.filter((p) => p.isExtra);
-        expect(added[added.length - 1].extraName).toBeUndefined();
+        const added = parentAt(at(updates, 0).schedule, 0).periods.filter((p) => p.isExtra);
+        expect(lastOf(added, 'extra period').extraName).toBeUndefined();
     });
 
     it('refuses flexible-extra when no flexible weeks are left', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('flexible-extra', data.schedule[0]));
+        act(() => result.current.setPreset('flexible-extra', parentAt(data.schedule, 0)));
         act(() => result.current.setDurationValue(5));
         act(() => result.current.confirmAdd(0));
 
@@ -441,15 +442,17 @@ describe('useScheduleEditor — extra periods', () => {
     it('removes an extra period by id', () => {
         const { result, updates, data } = setup();
         act(() => result.current.openAddForm(0));
-        act(() => result.current.setPreset('vacation', data.schedule[0]));
+        act(() => result.current.setPreset('vacation', parentAt(data.schedule, 0)));
         act(() => result.current.confirmAdd(0));
 
-        const added = updates[0].schedule[0].periods.find((p) => p.isExtra)!;
-        const { result: second, updates: secondUpdates } = setup(updates[0]);
+        const added = parentAt(at(updates, 0).schedule, 0).periods.find((p) => p.isExtra)!;
+        const { result: second, updates: secondUpdates } = setup(at(updates, 0));
         act(() => second.current.removeExtra(0, added.extraId!));
 
-        expect(secondUpdates[0].schedule[0].periods.some((p) => p.extraId === added.extraId)).toBe(
-            false,
-        );
+        expect(
+            parentAt(at(secondUpdates, 0).schedule, 0).periods.some(
+                (p) => p.extraId === added.extraId,
+            ),
+        ).toBe(false);
     });
 });

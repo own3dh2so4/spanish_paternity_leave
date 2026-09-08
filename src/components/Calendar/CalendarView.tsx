@@ -139,7 +139,9 @@ export default function CalendarView({
         const fresh = computeSchedule(data);
         onUpdateData({
             ...data,
-            schedule: schedule.map((parent, i) => (i === parentIndex ? fresh[i] : parent)),
+            schedule: schedule.map((parent, i) =>
+                i === parentIndex ? (fresh[i] ?? parent) : parent,
+            ),
         });
     };
 
@@ -159,21 +161,26 @@ export default function CalendarView({
             />
 
             <div className="summary-cards">
-                {displayOrder.map((idx) => (
-                    <SummaryCard
-                        key={idx}
-                        parentIndex={idx}
-                        parent={schedule[idx]}
-                        activeColor={activeColors[idx]}
-                        isHidden={hiddenParents.has(idx)}
-                        dueDate={data.dueDate}
-                        lang={lang}
-                        t={t}
-                        editor={editor}
-                        onToggleVisibility={toggleParentVisibility}
-                        onResetCustom={resetParentCustom}
-                    />
-                ))}
+                {displayOrder.map((idx) => {
+                    const parent = schedule[idx];
+                    const activeColor = activeColors[idx];
+                    if (!parent || !activeColor) return null;
+                    return (
+                        <SummaryCard
+                            key={idx}
+                            parentIndex={idx}
+                            parent={parent}
+                            activeColor={activeColor}
+                            isHidden={hiddenParents.has(idx)}
+                            dueDate={data.dueDate}
+                            lang={lang}
+                            t={t}
+                            editor={editor}
+                            onToggleVisibility={toggleParentVisibility}
+                            onResetCustom={resetParentCustom}
+                        />
+                    );
+                })}
             </div>
 
             <CalendarLegend

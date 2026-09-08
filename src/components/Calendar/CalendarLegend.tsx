@@ -31,8 +31,8 @@ export default function CalendarLegend({
                 </div>
                 {displayOrder.map((idx) => {
                     const parent = schedule[idx];
-                    if (!parent || hiddenParents.has(idx)) return null;
                     const color = activeColors[idx];
+                    if (!parent || !color || hiddenParents.has(idx)) return null;
                     const hasType = (type: LeaveType) =>
                         parent.periods.some((p) => !p.isExtra && p.type === type);
                     const hasExtra = () => parent.periods.some((p) => p.isExtra);

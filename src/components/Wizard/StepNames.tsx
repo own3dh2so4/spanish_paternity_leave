@@ -28,7 +28,8 @@ export default function StepNames({
     const handleColorChange = (index: number, colorId: ColorPaletteId) => {
         const updated = [...colors];
         const takenBy = updated.findIndex((c, i) => c === colorId && i !== index);
-        if (takenBy !== -1) updated[takenBy] = updated[index];
+        const givenUp = updated[index];
+        if (takenBy !== -1 && givenUp) updated[takenBy] = givenUp;
         updated[index] = colorId;
         onChangeColors(updated);
     };

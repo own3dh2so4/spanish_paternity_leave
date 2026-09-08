@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parentAt } from '../../test-helpers';
 import { makeData } from '../../test-fixtures';
 import type { ComputedPeriod, Regime } from '../../types';
 import {
@@ -161,19 +162,19 @@ describe('getPeriodWarning', () => {
 describe('flexible quota helpers', () => {
     it('reports no remaining weeks on a freshly computed schedule', () => {
         const data = makeData();
-        expect(getRemainingFlexWeeks(data.schedule[0])).toBe(0);
+        expect(getRemainingFlexWeeks(parentAt(data.schedule, 0))).toBe(0);
     });
 
     it('counts anticipated weeks against the quota', () => {
         const data = makeData({ biologicalMother: 0, anticipatedWeeks: 2 });
-        const parent = data.schedule[0];
+        const parent = parentAt(data.schedule, 0);
         expect(getRemainingFlexWeeks(parent)).toBe(0);
         const flexible = parent.periods.find((p) => p.type === 'flexible')!;
         expect(getMaxWeeksFor(parent, flexible)).toBe(9);
     });
 
     it('caps the weeks until age 8 at the allowance and leaves lactancia uncapped', () => {
-        const parent = makeData({ parentCount: 1 }).schedule[0];
+        const parent = parentAt(makeData({ parentCount: 1 }).schedule, 0);
         const cuidado = parent.periods.find((p) => p.type === 'cuidado')!;
         const lactancia = parent.periods.find((p) => p.type === 'lactancia')!;
         expect(getMaxWeeksFor(parent, cuidado)).toBe(4);

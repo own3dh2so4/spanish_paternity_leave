@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import Wizard from '../Wizard';
 import { WIZARD_DATA_VERSION } from '../../../constants';
 import type { WizardInput } from '../../../types';
+import { at } from '../../../test-helpers';
 
 function setDueDate(value: string) {
     const input = screen.getByTestId('due-date-container').querySelector('input')!;
@@ -27,7 +28,7 @@ describe('Wizard', () => {
         );
         expect(screen.getByTestId('wizard-next-btn')).toHaveTextContent(/Calculate/);
         next();
-        const input = onComplete.mock.calls[0][0] as WizardInput;
+        const input = at(onComplete.mock.calls, 0)[0] as WizardInput;
         expect(input).toMatchObject({
             version: WIZARD_DATA_VERSION,
             dueDate: '2026-10-01',
@@ -63,7 +64,7 @@ describe('Wizard', () => {
         next();
         fireEvent.click(screen.getByTestId('first-parent-btn-1'));
         next();
-        expect(onComplete.mock.calls[0][0]).toMatchObject({
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({
             parentCount: 2,
             names: ['Ana', 'Luis'],
             babies: 2,
@@ -90,7 +91,7 @@ describe('Wizard', () => {
         expect(screen.getByTestId('first-parent-btn-1')).toHaveAttribute('aria-checked', 'true');
         expect(screen.getByTestId('first-parent-btn-0')).toHaveAttribute('aria-checked', 'false');
         next();
-        expect(onComplete.mock.calls[0][0]).toMatchObject({
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({
             biologicalMother: 1,
             leaveMode: 'optimized',
             firstParent: 1,
@@ -126,7 +127,7 @@ describe('Wizard', () => {
         expect(screen.getByTestId('anticipated-unavailable')).toBeInTheDocument();
         next();
         next();
-        expect(onComplete.mock.calls[0][0]).toMatchObject({
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({
             regimes: ['sermas', 'et'],
             convenioDays: [10, 0],
             biologicalMother: 0,
@@ -148,7 +149,7 @@ describe('Wizard', () => {
         expect(screen.getByTestId('extra-weeks-btn-0-no')).toHaveAttribute('aria-checked', 'true');
         next();
         next();
-        expect(onComplete.mock.calls[0][0]).toMatchObject({ useExtraWeeks: [false, true] });
+        expect(at(onComplete.mock.calls, 0)[0]).toMatchObject({ useExtraWeeks: [false, true] });
     });
 
     it('asks about 4 weeks for a single-parent family', () => {

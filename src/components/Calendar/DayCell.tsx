@@ -33,19 +33,21 @@ export default function DayCell({
 
     const isWeekend = day.getDay() === 0 || day.getDay() === 6;
     const shown = (entries ?? []).slice(0, 2);
-    const hasEntries = shown.length > 0 && !!parentColors;
+    const [first, second] = shown;
+    const colorOf = (entry: DateMapEntry) => parentColors?.[entry.parentIndex]?.[entry.type];
+    const firstColor = first && colorOf(first);
+    const hasEntries = !!firstColor;
 
     const style: React.CSSProperties = {};
     let textColor: string | undefined;
-    if (hasEntries && parentColors) {
-        const c1 = parentColors[shown[0].parentIndex][shown[0].type];
-        if (shown.length > 1) {
-            const c2 = parentColors[shown[1].parentIndex][shown[1].type];
-            style.background = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
+    if (firstColor) {
+        const secondColor = second && colorOf(second);
+        if (secondColor) {
+            style.background = `linear-gradient(135deg, ${firstColor} 50%, ${secondColor} 50%)`;
         } else {
-            style.backgroundColor = c1;
+            style.backgroundColor = firstColor;
         }
-        textColor = readableInkOn(c1);
+        textColor = readableInkOn(firstColor);
     }
 
     const dateLabel = day.toLocaleDateString(DISPLAY_LOCALES[lang], {
@@ -106,7 +108,7 @@ export default function DayCell({
             <div className={`day-tooltip ${tooltipSide}`} aria-hidden="true">
                 <div className="tooltip-header">{dateLabel}</div>
                 {isBirthDay && <div className="tooltip-birth">👶 {t.birthDate}</div>}
-                {hasEntries && parentColors && (
+                {hasEntries && (
                     <div className="tooltip-entries">
                         {shown.map((entry) => (
                             <div
@@ -115,10 +117,7 @@ export default function DayCell({
                             >
                                 <div
                                     className="tooltip-color-bar"
-                                    style={{
-                                        backgroundColor:
-                                            parentColors[entry.parentIndex][entry.type],
-                                    }}
+                                    style={{ backgroundColor: colorOf(entry) }}
                                 />
                                 <div className="tooltip-entry-content">
                                     <span className="tooltip-name">{entry.parentName}</span>

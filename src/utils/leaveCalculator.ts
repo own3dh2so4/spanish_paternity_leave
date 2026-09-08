@@ -1,4 +1,10 @@
-import { LEAVE_MODES, LEAVE_TYPES, REGIME_RULES, WORK_HOURS_PER_DAY } from '../constants';
+import {
+    DEFAULT_PALETTE_ID,
+    LEAVE_MODES,
+    LEAVE_TYPES,
+    REGIME_RULES,
+    WORK_HOURS_PER_DAY,
+} from '../constants';
 import type { ComputedParentSchedule, ComputedPeriod, LeaveType, WizardInput } from '../types';
 import {
     addDays,
@@ -101,8 +107,8 @@ function buildParent(
 
     return {
         schedule: {
-            name: input.names[parentIndex],
-            colorId: input.colors[parentIndex],
+            name: input.names[parentIndex] ?? '',
+            colorId: input.colors[parentIndex] ?? DEFAULT_PALETTE_ID,
             regime,
             allowance,
             periods,

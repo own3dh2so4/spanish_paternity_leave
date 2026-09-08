@@ -38,10 +38,8 @@ export default function SummaryCard({
     const { fixed, editable } = splitFixed(parent.periods);
     const mandatory = fixed.find((p) => p.type === 'mandatory');
 
-    const minStartFor = (idx: number): Date => {
-        if (idx > 0) return parseLocalDate(editable[idx - 1].endDate);
-        return parseLocalDate(mandatory?.endDate ?? dueDate);
-    };
+    const minStartFor = (idx: number): Date =>
+        parseLocalDate(editable[idx - 1]?.endDate ?? mandatory?.endDate ?? dueDate);
 
     return (
         <section

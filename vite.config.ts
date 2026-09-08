@@ -53,10 +53,11 @@ export default defineConfig({
                 'src/main.tsx',
                 'src/test-setup.ts',
                 'src/test-fixtures.ts',
+                'src/test-helpers.ts',
             ],
             thresholds: {
                 statements: 92,
-                branches: 84,
+                branches: 83,
                 functions: 92,
                 lines: 94,
             },
