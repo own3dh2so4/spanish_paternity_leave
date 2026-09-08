@@ -90,6 +90,8 @@ export function validateWizardData(x: unknown): WizardData | null {
     if (!x.regimes.every((r) => REGIMES.includes(r as Regime))) return null;
     if (!Array.isArray(x.convenioDays) || x.convenioDays.length !== count) return null;
     if (!x.convenioDays.every((d) => isInt(d, 0, MAX_CONVENIO_DAYS))) return null;
+    if (!Array.isArray(x.useExtraWeeks) || x.useExtraWeeks.length !== count) return null;
+    if (!x.useExtraWeeks.every((v) => typeof v === 'boolean')) return null;
     if (x.leaveMode !== 'together' && x.leaveMode !== 'optimized') return null;
     if (!isInt(x.firstParent, 0, 1)) return null;
     if (!isInt(x.babies, 1, MAX_BABIES)) return null;
@@ -106,6 +108,7 @@ export function validateWizardData(x: unknown): WizardData | null {
         colors: x.colors as WizardData['colors'],
         regimes: x.regimes as Regime[],
         convenioDays: x.convenioDays as number[],
+        useExtraWeeks: x.useExtraWeeks as boolean[],
         leaveMode: x.leaveMode,
         firstParent: x.firstParent,
         babies: x.babies,

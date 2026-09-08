@@ -11,7 +11,7 @@ async function openDetailsStep(page: Page, names: string[]): Promise<WizardPage>
     await wizard.next();
     await wizard.fillNames(names);
     await wizard.next();
-    await expect(page.getByTestId('regime-field-0')).toBeVisible();
+    await expect(page.getByTestId('parent-field-0')).toBeVisible();
     return wizard;
 }
 

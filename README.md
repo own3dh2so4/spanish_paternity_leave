@@ -47,6 +47,8 @@ Sources: [EBEP](https://www.boe.es/buscar/act.php?id=BOE-A-2015-11719),
 ## Features
 
 - Two-parent or single-parent families, multiple births, disability, weeks taken before the birth
+- The 2 paid weeks until age 8 (4 for a single parent) are optional per parent, so you can keep them
+  for later instead of scheduling them after the birth leave
 - Per-parent employment regime (private sector, public employee, SERMAS) and extra paid days from your agreement
 - Two strategies: **Together** (simultaneous) and **Staggered** (one parent is always at home)
 - Editable durations and start dates, drag or keyboard reordering, extra periods (holidays, unpaid

@@ -120,4 +120,11 @@ describe('CalendarView', () => {
             /30 calendar days/,
         );
     });
+
+    it('shows no weeks-until-8 row for a parent who kept them for later', () => {
+        renderView(makeData({ useExtraWeeks: [false, true] }));
+        const cards = screen.getAllByTestId(/^summary-card-/);
+        expect(within(cards[0]).queryByTestId('period-row-cuidado')).toBeNull();
+        expect(within(cards[1]).getByTestId('period-row-cuidado')).toBeInTheDocument();
+    });
 });

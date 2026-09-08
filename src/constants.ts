@@ -1,6 +1,6 @@
 import type { ColorPalette, ColorPaletteId, LeaveMode, LeaveType, Regime } from './types';
 
-export const WIZARD_DATA_VERSION = 3;
+export const WIZARD_DATA_VERSION = 4;
 
 export const MANDATORY_WEEKS = 6;
 export const FLEXIBLE_WEEKS = { couple: 11, single: 22 } as const;

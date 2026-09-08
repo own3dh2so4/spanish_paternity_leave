@@ -51,6 +51,9 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     const [convenioDays, setConvenioDays] = useState<number[]>(
         padTo2(initialData?.convenioDays ?? [], 0),
     );
+    const [useExtraWeeks, setUseExtraWeeks] = useState<boolean[]>(
+        padTo2(initialData?.useExtraWeeks ?? [], true),
+    );
 
     const allSteps: { id: StepId; label: string }[] = [
         { id: 'dueDate', label: t.stepDueDate },
@@ -101,6 +104,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
             colors: colors.slice(0, parentCount),
             regimes: regimes.slice(0, parentCount),
             convenioDays: convenioDays.slice(0, parentCount).map((d) => Math.max(0, Math.round(d))),
+            useExtraWeeks: useExtraWeeks.slice(0, parentCount),
             leaveMode: effectiveMode,
             firstParent: effectiveMode === LEAVE_MODES.OPTIMIZED ? firstParent : 0,
             babies,
@@ -143,6 +147,8 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
                         onChangeRegimes={(next) => setRegimes(padTo2(next, 'et'))}
                         convenioDays={convenioDays.slice(0, parentCount)}
                         onChangeConvenioDays={(next) => setConvenioDays(padTo2(next, 0))}
+                        useExtraWeeks={useExtraWeeks.slice(0, parentCount)}
+                        onChangeUseExtraWeeks={(next) => setUseExtraWeeks(padTo2(next, true))}
                     />
                 );
             case 'leaveMode':

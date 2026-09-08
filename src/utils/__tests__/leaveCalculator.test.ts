@@ -234,3 +234,44 @@ describe('calculateLeaveSchedule — regimes', () => {
         expect(period(parent, 'lactancia').startDate).toBe(convenio.endDate);
     });
 });
+
+describe('calculateLeaveSchedule — keeping the weeks until age 8 for later', () => {
+    it('omits the period and returns to work earlier when a parent opts out', () => {
+        const withWeeks = calculateLeaveSchedule(makeInput())[0];
+        const [without] = calculateLeaveSchedule(makeInput({ useExtraWeeks: [false, false] }));
+        expect(without.periods.some((p) => p.type === 'cuidado')).toBe(false);
+        expect(without.allowance.extraUntil8Weeks).toBe(2);
+        const lastWith = withWeeks.periods.reduce((m, p) => (p.endDate > m ? p.endDate : m), '');
+        const lastWithout = without.periods.reduce((m, p) => (p.endDate > m ? p.endDate : m), '');
+        expect(lastWithout < lastWith).toBe(true);
+        expect(daysBetween(parseLocalDate(lastWithout), parseLocalDate(lastWith))).toBe(14);
+    });
+
+    it('is decided per parent', () => {
+        const schedule = calculateLeaveSchedule(makeInput({ useExtraWeeks: [false, true] }));
+        expect(schedule[0].periods.some((p) => p.type === 'cuidado')).toBe(false);
+        expect(weeksOf(schedule[1], 'cuidado')).toBe(2);
+    });
+
+    it('drops 4 weeks for a single parent who opts out', () => {
+        const [parent] = calculateLeaveSchedule(
+            makeInput({ parentCount: 1, useExtraWeeks: [false] }),
+        );
+        expect(parent.periods.some((p) => p.type === 'cuidado')).toBe(false);
+        expect(parent.allowance.extraUntil8Weeks).toBe(4);
+    });
+
+    it('lets the second parent start earlier in staggered mode', () => {
+        const opts = { leaveMode: 'optimized' as const, firstParent: 0 };
+        const withWeeks = calculateLeaveSchedule(makeInput(opts));
+        const without = calculateLeaveSchedule(
+            makeInput({ ...opts, useExtraWeeks: [false, false] }),
+        );
+        expect(
+            period(without[1], 'flexible').startDate < period(withWeeks[1], 'flexible').startDate,
+        ).toBe(true);
+        expect(period(without[1], 'flexible').startDate).toBe(
+            without[0].periods.reduce((m, p) => (p.endDate > m ? p.endDate : m), ''),
+        );
+    });
+});

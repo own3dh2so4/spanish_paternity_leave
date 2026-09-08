@@ -649,3 +649,14 @@
 .details-inline-field input {
     width: 72px;
 }
+
+.details-sublabel {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.details-field .details-sublabel:first-of-type {
+    margin-top: 0.25rem;
+}

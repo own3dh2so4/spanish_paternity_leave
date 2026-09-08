@@ -28,6 +28,14 @@ describe('validateWizardData', () => {
         ['missing names', (d: Record<string, unknown>) => delete d.names],
         ['bad babies', (d: Record<string, unknown>) => (d.babies = 7)],
         ['unknown regime', (d: Record<string, unknown>) => (d.regimes = ['muface', 'et'])],
+        [
+            'non-boolean useExtraWeeks',
+            (d: Record<string, unknown>) => (d.useExtraWeeks = ['yes', 'no']),
+        ],
+        [
+            'useExtraWeeks length mismatch',
+            (d: Record<string, unknown>) => (d.useExtraWeeks = [true]),
+        ],
         ['convenio days out of range', (d: Record<string, unknown>) => (d.convenioDays = [99, 0])],
         ['schedule not array', (d: Record<string, unknown>) => (d.schedule = {})],
         [

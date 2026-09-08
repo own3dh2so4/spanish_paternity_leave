@@ -179,6 +179,10 @@ export const es: TranslationKeys = {
     convenioDaysLabel: 'Días retribuidos adicionales de tu empresa o convenio',
     convenioDaysHint:
         'Días naturales que se añaden justo después del permiso de nacimiento. Deja 0 si no tienes.',
+    extraWeeksLabel: (weeks) =>
+        `¿Disfrutar ahora las ${weeks} ${plural(weeks, 'semana', 'semanas')} retribuidas hasta los 8 años?`,
+    extraWeeksHint:
+        'Son retribuidas y puedes reservarlas para cualquier momento hasta que el menor cumpla 8 años. Elige No para no añadirlas al calendario.',
     anticipatedNotAvailable: 'Los empleados públicos no pueden iniciar el permiso antes del parto.',
     gestationLeave: (weeks) =>
         `Permiso retribuido antes del parto (${weeks} ${plural(weeks, 'semana', 'semanas')})`,

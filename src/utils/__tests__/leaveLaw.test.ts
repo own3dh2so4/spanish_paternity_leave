@@ -9,6 +9,7 @@ import {
     getGestationLeaveWeeks,
     getLeaveAllowance,
     getMaxWeeksFor,
+    usesExtraWeeks,
     getPeriodWarning,
     getRemainingFlexWeeks,
     isBeforeNewRegime,
@@ -91,6 +92,12 @@ describe('regime-specific rules', () => {
         expect(getGestationLeaveWeeks(base, 1)).toBe(0);
         expect(getGestationLeaveWeeks({ ...base, regimes: ['ebep', 'et'] }, 0)).toBe(0);
         expect(getGestationLeaveWeeks({ ...base, regimes: ['et', 'et'] }, 0)).toBe(0);
+    });
+
+    it('schedules the weeks until age 8 unless the parent opted out', () => {
+        expect(usesExtraWeeks({ useExtraWeeks: [true, false] }, 0)).toBe(true);
+        expect(usesExtraWeeks({ useExtraWeeks: [true, false] }, 1)).toBe(false);
+        expect(usesExtraWeeks({ useExtraWeeks: [] }, 0)).toBe(true);
     });
 
     it('defaults the SERMAS 10 extra paid days only for the biological mother', () => {

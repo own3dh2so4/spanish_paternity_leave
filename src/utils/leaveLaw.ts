@@ -40,6 +40,14 @@ export function getRegime(input: Pick<WizardInput, 'regimes'>, parentIndex: numb
     return input.regimes?.[parentIndex] ?? 'et';
 }
 
+/** False when the parent keeps the paid weeks until age 8 instead of scheduling them now. */
+export function usesExtraWeeks(
+    input: Pick<WizardInput, 'useExtraWeeks'>,
+    parentIndex: number,
+): boolean {
+    return input.useExtraWeeks?.[parentIndex] ?? true;
+}
+
 export function isBiologicalMother(
     input: Pick<WizardInput, 'biologicalMother'>,
     parentIndex: number,

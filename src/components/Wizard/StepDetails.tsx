@@ -24,6 +24,8 @@ interface Props {
     onChangeRegimes: (regimes: Regime[]) => void;
     convenioDays: number[];
     onChangeConvenioDays: (days: number[]) => void;
+    useExtraWeeks: boolean[];
+    onChangeUseExtraWeeks: (values: boolean[]) => void;
 }
 
 interface ChipOption<T> {
@@ -77,6 +79,8 @@ export default function StepDetails({
     onChangeRegimes,
     convenioDays,
     onChangeConvenioDays,
+    useExtraWeeks,
+    onChangeUseExtraWeeks,
 }: Props) {
     const { t } = useLanguage();
     const allowance = getLeaveAllowance({ parentCount, babies, disability });
@@ -99,6 +103,12 @@ export default function StepDetails({
         onChangeBiologicalMother(idx);
         const nextDays = names.map((_, i) => defaultConvenioDays(regimes[i] ?? 'et', idx === i));
         onChangeConvenioDays(nextDays);
+    };
+
+    const setUseExtraWeeks = (i: number, value: boolean) => {
+        const next = [...useExtraWeeks];
+        next[i] = value;
+        onChangeUseExtraWeeks(next);
     };
 
     const setConvenioDays = (i: number, raw: string) => {
@@ -162,10 +172,9 @@ export default function StepDetails({
                 </fieldset>
 
                 {names.map((_, i) => (
-                    <fieldset className="details-field" key={i} data-testid={`regime-field-${i}`}>
-                        <legend>
-                            {t.regimeLabel} · {displayName(i)}
-                        </legend>
+                    <fieldset className="details-field" key={i} data-testid={`parent-field-${i}`}>
+                        <legend>{displayName(i)}</legend>
+                        <p className="details-sublabel">{t.regimeLabel}</p>
                         <Chips
                             label={`${t.regimeLabel} ${displayName(i)}`}
                             value={regimes[i] ?? 'et'}
@@ -191,6 +200,20 @@ export default function StepDetails({
                             />
                         </label>
                         <p className="details-hint">{t.convenioDaysHint}</p>
+
+                        <p className="details-sublabel">
+                            {t.extraWeeksLabel(allowance.extraUntil8Weeks)}
+                        </p>
+                        <Chips
+                            label={`${t.extraWeeksLabel(allowance.extraUntil8Weeks)} ${displayName(i)}`}
+                            value={useExtraWeeks[i] ?? true}
+                            onChange={(v) => setUseExtraWeeks(i, v)}
+                            options={[
+                                { value: true, label: t.yes, testId: `extra-weeks-btn-${i}-yes` },
+                                { value: false, label: t.no, testId: `extra-weeks-btn-${i}-no` },
+                            ]}
+                        />
+                        <p className="details-hint">{t.extraWeeksHint}</p>
                     </fieldset>
                 ))}
 

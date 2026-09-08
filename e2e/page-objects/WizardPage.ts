@@ -18,6 +18,7 @@ export interface WizardOptions {
     details?: DetailsOptions;
     regimes?: Regime[];
     convenioDays?: number[];
+    useExtraWeeks?: boolean[];
     leaveMode?: LeaveMode;
     firstParent?: 0 | 1;
 }
@@ -82,8 +83,20 @@ export class WizardPage {
         }
     }
 
+    parentField(parentIndex: number): Locator {
+        return this.page.getByTestId(`parent-field-${parentIndex}`);
+    }
+
     regimeButton(parentIndex: number, regime: Regime): Locator {
         return this.page.getByTestId(`regime-btn-${parentIndex}-${regime}`);
+    }
+
+    extraWeeksButton(parentIndex: number, use: boolean): Locator {
+        return this.page.getByTestId(`extra-weeks-btn-${parentIndex}-${use ? 'yes' : 'no'}`);
+    }
+
+    extraWeeksGroup(parentIndex: number): Locator {
+        return this.parentField(parentIndex).getByRole('radiogroup', { name: /until age 8/ });
     }
 
     convenioDaysInput(parentIndex: number): Locator {
@@ -97,6 +110,14 @@ export class WizardPage {
 
     async setConvenioDays(parentIndex: number, days: number) {
         await this.convenioDaysInput(parentIndex).fill(String(days));
+    }
+
+    async setUseExtraWeeks(parentIndex: number, use: boolean) {
+        await this.extraWeeksButton(parentIndex, use).click();
+        await expect(this.extraWeeksButton(parentIndex, use)).toHaveAttribute(
+            'aria-checked',
+            'true',
+        );
     }
 
     async chooseLeaveMode(mode: LeaveMode) {
@@ -121,6 +142,9 @@ export class WizardPage {
         }
         for (const [i, days] of (options.convenioDays ?? []).entries()) {
             await this.setConvenioDays(i, days);
+        }
+        for (const [i, use] of (options.useExtraWeeks ?? []).entries()) {
+            await this.setUseExtraWeeks(i, use);
         }
         if (parentCount === 1) {
             await this.submit();

@@ -140,6 +140,8 @@ export interface TranslationKeys {
     regimeHint: (regime: string) => string;
     convenioDaysLabel: string;
     convenioDaysHint: string;
+    extraWeeksLabel: (weeks: number) => string;
+    extraWeeksHint: string;
     anticipatedNotAvailable: string;
     gestationLeave: (weeks: number) => string;
     gestationBadge: string;
@@ -326,6 +328,10 @@ export const en: TranslationKeys = {
               : 'SERMAS pact: paid leave from week 37, 10 extra paid days for the biological mother and 30 calendar days of accumulated lactancia (until 12 months).',
     convenioDaysLabel: 'Extra paid days from your employer or agreement',
     convenioDaysHint: 'Calendar days added right after the birth leave. Leave 0 if none.',
+    extraWeeksLabel: (weeks) =>
+        `Take the ${weeks} paid ${plural(weeks, 'week', 'weeks')} until age 8 now?`,
+    extraWeeksHint:
+        'They are paid and you may keep them for any time until the child turns 8. Choose No to leave them off the calendar.',
     anticipatedNotAvailable: 'Public employees cannot start the leave before the birth.',
     gestationLeave: (weeks) =>
         `Paid leave before the birth (${weeks} ${plural(weeks, 'week', 'weeks')})`,

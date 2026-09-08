@@ -77,6 +77,8 @@ export interface WizardInput {
     regimes: Regime[];
     /** Paid calendar days granted by the employer or collective agreement right after the leave, per parent. */
     convenioDays: number[];
+    /** Whether each parent schedules the 2 (4 for a single parent) paid weeks now instead of keeping them until age 8. */
+    useExtraWeeks: boolean[];
     leaveMode: LeaveMode;
     firstParent: number;
     babies: number;

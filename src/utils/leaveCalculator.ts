@@ -13,6 +13,7 @@ import {
     getGestationLeaveWeeks,
     getLeaveAllowance,
     getRegime,
+    usesExtraWeeks,
 } from './leaveLaw';
 
 /**
@@ -92,8 +93,11 @@ function buildParent(
         }
     }
 
-    const cuidadoEnd = addDays(cursor, 7 * allowance.extraUntil8Weeks);
-    periods.push(makePeriod(LEAVE_TYPES.CUIDADO, cursor, cuidadoEnd));
+    if (usesExtraWeeks(input, parentIndex) && allowance.extraUntil8Weeks > 0) {
+        const cuidadoEnd = addDays(cursor, 7 * allowance.extraUntil8Weeks);
+        periods.push(makePeriod(LEAVE_TYPES.CUIDADO, cursor, cuidadoEnd));
+        cursor = cuidadoEnd;
+    }
 
     return {
         schedule: {
@@ -103,7 +107,7 @@ function buildParent(
             allowance,
             periods,
         },
-        returnDate: cuidadoEnd,
+        returnDate: cursor,
     };
 }
 

@@ -44,6 +44,13 @@ export function extractDateRanges(text: string): DateRange[] {
     return ranges;
 }
 
+/** Calendar days from `from` to `to`, both encoded as yyyymmdd numbers. */
+export function daysBetween(from: number, to: number): number {
+    const asDate = (n: number) =>
+        Date.UTC(Math.floor(n / 10000), (Math.floor(n / 100) % 100) - 1, n % 100);
+    return (asDate(to) - asDate(from)) / 86400000;
+}
+
 export function rangesOverlap(a: DateRange, b: DateRange): boolean {
     return a.start < b.end && b.start < a.end;
 }

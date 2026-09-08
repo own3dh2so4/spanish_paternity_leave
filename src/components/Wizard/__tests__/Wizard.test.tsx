@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import Wizard from '../Wizard';
+import { WIZARD_DATA_VERSION } from '../../../constants';
 import type { WizardInput } from '../../../types';
 
 function setDueDate(value: string) {
@@ -28,7 +29,7 @@ describe('Wizard', () => {
         next();
         const input = onComplete.mock.calls[0][0] as WizardInput;
         expect(input).toMatchObject({
-            version: 3,
+            version: WIZARD_DATA_VERSION,
             dueDate: '2026-10-01',
             parentCount: 1,
             names: ['Ana'],
@@ -108,5 +109,35 @@ describe('Wizard', () => {
             biologicalMother: 0,
             anticipatedWeeks: 0,
         });
+    });
+
+    it('lets each parent keep the weeks until age 8 for later', () => {
+        const onComplete = vi.fn();
+        render(<Wizard onComplete={onComplete} initialData={null} />);
+        setDueDate('01/10/2026');
+        next();
+        next();
+        fireEvent.change(screen.getByTestId('parent-name-input-0'), { target: { value: 'Ana' } });
+        fireEvent.change(screen.getByTestId('parent-name-input-1'), { target: { value: 'Luis' } });
+        next();
+        expect(screen.getByTestId('extra-weeks-btn-0-yes')).toHaveAttribute('aria-checked', 'true');
+        fireEvent.click(screen.getByTestId('extra-weeks-btn-0-no'));
+        expect(screen.getByTestId('extra-weeks-btn-0-no')).toHaveAttribute('aria-checked', 'true');
+        next();
+        next();
+        expect(onComplete.mock.calls[0][0]).toMatchObject({ useExtraWeeks: [false, true] });
+    });
+
+    it('asks about 4 weeks for a single-parent family', () => {
+        render(<Wizard onComplete={vi.fn()} initialData={null} />);
+        setDueDate('01/10/2026');
+        next();
+        fireEvent.click(screen.getByTestId('parent-count-btn-1'));
+        next();
+        fireEvent.change(screen.getByTestId('parent-name-input-0'), { target: { value: 'Ana' } });
+        next();
+        expect(
+            screen.getByRole('radiogroup', { name: /4 paid weeks until age 8/i }),
+        ).toBeInTheDocument();
     });
 });
