@@ -44,5 +44,22 @@ export default defineConfig({
         setupFiles: ['./src/test-setup.ts'],
         include: ['src/**/*.test.{ts,tsx}'],
         exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'html'],
+            include: ['src/**/*.{ts,tsx}'],
+            exclude: [
+                'src/**/*.test.{ts,tsx}',
+                'src/main.tsx',
+                'src/test-setup.ts',
+                'src/test-fixtures.ts',
+            ],
+            thresholds: {
+                statements: 84,
+                branches: 75,
+                functions: 79,
+                lines: 86,
+            },
+        },
     },
 });

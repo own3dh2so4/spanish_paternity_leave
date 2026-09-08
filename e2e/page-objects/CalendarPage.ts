@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { extractDateRanges, type DateRange } from '../utils/dragAndDrop';
+import { extractDateRanges, type DateRange } from '../utils/dateRanges';
 
 export type PeriodType =
     | 'gestation'

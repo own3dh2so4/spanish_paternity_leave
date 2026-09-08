@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { WizardPage } from '../page-objects/WizardPage';
 import { CalendarPage } from '../page-objects/CalendarPage';
-import { findOverlap } from '../utils/dragAndDrop';
+import { findOverlap } from '../utils/dateRanges';
 
 test.describe('Staggered (optimized) leave mode', () => {
     test('second parent starts flexible leave when the first parent returns to work', async ({

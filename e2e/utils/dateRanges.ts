@@ -1,9 +1,3 @@
-import type { Locator } from '@playwright/test';
-
-export async function htmlDragAndDrop(source: Locator, target: Locator) {
-    await source.dragTo(target);
-}
-
 export interface DateRange {
     start: number;
     end: number;
@@ -44,7 +38,11 @@ export function extractDateRanges(text: string): DateRange[] {
     return ranges;
 }
 
-/** Calendar days from `from` to `to`, both encoded as yyyymmdd numbers. */
+/**
+ * Calendar days from `from` to `to`, both encoded as yyyymmdd numbers. The e2e
+ * workspace cannot import the app's own date helpers, so this reads the rendered
+ * labels back instead.
+ */
 export function daysBetween(from: number, to: number): number {
     const asDate = (n: number) =>
         Date.UTC(Math.floor(n / 10000), (Math.floor(n / 100) % 100) - 1, n % 100);

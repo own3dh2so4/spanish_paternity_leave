@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { WizardPage } from '../page-objects/WizardPage';
 import { CalendarPage } from '../page-objects/CalendarPage';
-import { daysBetween } from '../utils/dragAndDrop';
+import { daysBetween } from '../utils/dateRanges';
 
 const CUIDADO_DAYS_COUPLE = 14;
 

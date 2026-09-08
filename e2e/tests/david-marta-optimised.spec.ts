@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { WizardPage } from '../page-objects/WizardPage';
 import { CalendarPage } from '../page-objects/CalendarPage';
-import { findOverlap, htmlDragAndDrop } from '../utils/dragAndDrop';
+import { findOverlap } from '../utils/dateRanges';
 
 /**
  * David and Marta plan staggered leave. Marta stays home first, reorders her
@@ -36,10 +36,7 @@ test.describe('David & Marta — staggered mode with reordering and duration edi
             'lactancia',
             'cuidado',
         ]);
-        await htmlDragAndDrop(
-            calendar.dragHandle(MARTA, 'lactancia'),
-            calendar.row(MARTA, 'flexible'),
-        );
+        await calendar.dragHandle(MARTA, 'lactancia').dragTo(calendar.row(MARTA, 'flexible'));
         expect(await calendar.rowOrder(MARTA)).toEqual([
             'mandatory',
             'lactancia',
