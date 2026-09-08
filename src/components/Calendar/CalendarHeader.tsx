@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import type { WizardData } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
@@ -20,11 +19,9 @@ interface Props {
     onToggleTheme: () => void;
 }
 
-const DueDateButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
-    function DueDateButton(props, ref) {
-        return <button type="button" ref={ref} {...props} className="header-due-date" />;
-    },
-);
+function DueDateButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+    return <button type="button" {...props} className="header-due-date" />;
+}
 
 export default function CalendarHeader({
     data,

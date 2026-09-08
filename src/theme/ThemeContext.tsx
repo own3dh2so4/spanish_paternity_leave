@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useCallback, useEffect, useState } from 'react';
 
 export type Theme = 'dark' | 'light';
 
@@ -42,7 +42,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
     }, []);
 
-    // Keep in sync if another tab changes the preference
     useEffect(() => {
         const mq = window.matchMedia('(prefers-color-scheme: light)');
         const handler = (e: MediaQueryListEvent) => {
@@ -57,9 +56,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return () => mq.removeEventListener('change', handler);
     }, []);
 
-    return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+    return <ThemeContext value={{ theme, toggleTheme }}>{children}</ThemeContext>;
 }
 
 export function useTheme(): ThemeContextValue {
-    return useContext(ThemeContext);
+    return use(ThemeContext);
 }

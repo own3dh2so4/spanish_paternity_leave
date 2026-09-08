@@ -38,7 +38,9 @@ export default function CalendarView({
 }: Props) {
     const { t, lang, setLang } = useLanguage();
     const { theme, toggleTheme } = useTheme();
-    const [hiddenParents, setHiddenParents] = useState<Set<number>>(initialHidden ?? new Set());
+    const [hiddenParents, setHiddenParents] = useState<Set<number>>(
+        () => initialHidden ?? new Set(),
+    );
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const editor = useScheduleEditor(data, onUpdateData);
 

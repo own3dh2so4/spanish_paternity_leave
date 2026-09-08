@@ -28,7 +28,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     const [step, setStep] = useState(0);
     const [dueDate, setDueDate] = useState(initialData?.dueDate ?? '');
     const [parentCount, setParentCount] = useState<1 | 2>(initialData?.parentCount ?? 2);
-    const [names, setNames] = useState<string[]>(padTo2(initialData?.names ?? [], ''));
+    const [names, setNames] = useState<string[]>(() => padTo2(initialData?.names ?? [], ''));
     const [colors, setColors] = useState<ColorPaletteId[]>(
         initialData?.colors && initialData.colors.length === 2
             ? initialData.colors
@@ -49,11 +49,13 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
         initialData?.biologicalMother ?? null,
     );
     const [anticipatedWeeks, setAnticipatedWeeks] = useState(initialData?.anticipatedWeeks ?? 0);
-    const [regimes, setRegimes] = useState<Regime[]>(padTo2(initialData?.regimes ?? [], 'et'));
-    const [convenioDays, setConvenioDays] = useState<number[]>(
+    const [regimes, setRegimes] = useState<Regime[]>(() =>
+        padTo2(initialData?.regimes ?? [], 'et'),
+    );
+    const [convenioDays, setConvenioDays] = useState<number[]>(() =>
         padTo2(initialData?.convenioDays ?? [], 0),
     );
-    const [useExtraWeeks, setUseExtraWeeks] = useState<boolean[]>(
+    const [useExtraWeeks, setUseExtraWeeks] = useState<boolean[]>(() =>
         padTo2(initialData?.useExtraWeeks ?? [], true),
     );
 

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useCallback, useEffect, useState } from 'react';
 import { en } from './en';
 import { es } from './es';
 import type { TranslationKeys } from './en';
@@ -29,11 +29,11 @@ function detectInitialLanguage(): Language {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const [lang, setLangState] = useState<Language>(detectInitialLanguage);
+    const [lang, setLang] = useState<Language>(detectInitialLanguage);
 
-    const setLang = useCallback((newLang: Language) => {
+    const selectLanguage = useCallback((newLang: Language) => {
         localStorage.setItem(LANG_STORAGE_KEY, newLang);
-        setLangState(newLang);
+        setLang(newLang);
     }, []);
 
     useEffect(() => {
@@ -42,12 +42,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }, [lang]);
 
     return (
-        <LanguageContext.Provider value={{ lang, setLang, t: TRANSLATIONS[lang] }}>
+        <LanguageContext value={{ lang, setLang: selectLanguage, t: TRANSLATIONS[lang] }}>
             {children}
-        </LanguageContext.Provider>
+        </LanguageContext>
     );
 }
 
 export function useLanguage(): LanguageContextValue {
-    return useContext(LanguageContext);
+    return use(LanguageContext);
 }

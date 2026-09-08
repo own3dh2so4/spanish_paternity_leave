@@ -25,11 +25,11 @@ export function useLocalStorage<T>(
         }
     });
 
-    const skipFirstWrite = useRef(options.override === undefined);
+    const skipFirstWriteRef = useRef(options.override === undefined);
 
     useEffect(() => {
-        if (skipFirstWrite.current) {
-            skipFirstWrite.current = false;
+        if (skipFirstWriteRef.current) {
+            skipFirstWriteRef.current = false;
             return;
         }
         try {
