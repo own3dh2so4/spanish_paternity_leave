@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { LEAVE_TYPES } from '../constants';
+import { LEAVE_TYPES, MAX_DURATION_VALUE } from '../constants';
 import type {
     ComputedParentSchedule,
     ComputedPeriod,
@@ -71,8 +71,6 @@ export interface ScheduleEditor {
     confirmAdd: (parentIndex: number) => void;
     removeExtra: (parentIndex: number, extraId: string) => void;
 }
-
-const MAX_DURATION_VALUE = 999;
 
 const DEFAULT_FORM: ExtraForm = {
     presetKey: 'vacation',

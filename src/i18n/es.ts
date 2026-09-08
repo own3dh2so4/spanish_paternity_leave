@@ -3,6 +3,7 @@ import type { TranslationKeys } from './en';
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const es: TranslationKeys = {
+    documentTitle: 'Planificador de Permiso Parental (España)',
     wizardTitle: '🇪🇸 Planificador de Permiso Parental',
     wizardSubtitle: 'Planifica el permiso por nacimiento y cuidado de menor',
     back: '← Atrás',

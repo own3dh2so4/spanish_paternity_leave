@@ -1,5 +1,5 @@
 import DatePicker from 'react-datepicker';
-import { LEAVE_TYPES } from '../../constants';
+import { LEAVE_TYPES, MAX_DURATION_VALUE } from '../../constants';
 import type { ColorPalette, ComputedParentSchedule, ComputedPeriod, EditUnit } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
 import type { Language } from '../../i18n/LanguageContext';
@@ -35,6 +35,9 @@ export default function PeriodRow({
     canMoveLater,
     minStartDate,
 }: Props) {
+    const { inputRef, editValue, editUnit, editStartDateValue, cancelStartDate, minEditStartDate } =
+        editor;
+
     const periodKey = getPeriodKey(period);
     const isLactancia = period.type === LEAVE_TYPES.LACTANCIA;
     const isNaturalLactancia = isLactancia && period.days === null;
@@ -111,14 +114,16 @@ export default function PeriodRow({
                         }}
                     >
                         <input
-                            ref={editor.inputRef}
+                            ref={inputRef}
                             type="number"
                             min="1"
-                            max={isLactancia ? 999 : (maxWeeks ?? 999)}
+                            max={
+                                isLactancia ? MAX_DURATION_VALUE : (maxWeeks ?? MAX_DURATION_VALUE)
+                            }
                             step={1}
                             className="period-edit-input"
                             aria-label={t.clickToEdit}
-                            value={editor.editValue}
+                            value={editValue}
                             onChange={(e) => editor.setEditValue(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') editor.commitEdit();
@@ -129,7 +134,7 @@ export default function PeriodRow({
                             <select
                                 className="period-edit-unit-select"
                                 aria-label={t.unitDays}
-                                value={editor.editUnit}
+                                value={editUnit}
                                 onChange={(e) => editor.setEditUnit(e.target.value as EditUnit)}
                             >
                                 <option value="days">{t.unitDays}</option>
@@ -168,13 +173,13 @@ export default function PeriodRow({
                 {isEditingDate ? (
                     <div className="period-date-picker-row">
                         <DatePicker
-                            selected={editor.editStartDateValue}
+                            selected={editStartDateValue}
                             onChange={(date: Date | null) => {
                                 if (date) editor.commitStartDate(date);
                             }}
-                            onClickOutside={editor.cancelStartDate}
+                            onClickOutside={cancelStartDate}
                             open
-                            minDate={editor.minEditStartDate ?? undefined}
+                            minDate={minEditStartDate ?? undefined}
                             dateFormat="dd/MM/yyyy"
                             locale={t.datePickerLocale}
                             calendarClassName="dp-dark"
@@ -189,7 +194,7 @@ export default function PeriodRow({
                                     readOnly
                                     aria-label={t.clickToEditStartDate}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Escape') editor.cancelStartDate();
+                                        if (e.key === 'Escape') cancelStartDate();
                                     }}
                                 />
                             }

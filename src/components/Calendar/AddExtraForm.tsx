@@ -1,3 +1,4 @@
+import { MAX_DURATION_VALUE } from '../../constants';
 import type { ComputedParentSchedule, ExtraPresetKey } from '../../types';
 import type { TranslationKeys } from '../../i18n/en';
 import type { ScheduleEditor } from '../../hooks/useScheduleEditor';
@@ -11,13 +12,11 @@ interface Props {
     editor: ScheduleEditor;
 }
 
-const MAX_FREE_DURATION = 999;
-
 export default function AddExtraForm({ parentIndex, parent, t, editor }: Props) {
     const { form } = editor;
     const remaining = getRemainingFlexWeeks(parent);
     const isFlexExtra = form.presetKey === 'flexible-extra';
-    const max = isFlexExtra ? remaining : MAX_FREE_DURATION;
+    const max = isFlexExtra ? remaining : MAX_DURATION_VALUE;
 
     const submitOnEnter = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') editor.confirmAdd(parentIndex);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import LZString from 'lz-string';
 import { makeData } from '../../test-fixtures';
+import type { LeaveType, WizardInput } from '../../types';
 import { compressWizardData, decompressWizardData, validateWizardData } from '../shareUtils';
 
 const encode = (obj: unknown) => LZString.compressToEncodedURIComponent(JSON.stringify(obj));
@@ -12,6 +13,28 @@ describe('share round trip', () => {
         expect(payload?.data).toEqual(data);
         expect(payload?.hiddenParents).toEqual([1]);
     });
+
+    it.each([
+        ['a plain ET plan', {}, 'flexible'],
+        ['convenio days', { convenioDays: [10, 0] }, 'convenio'],
+        [
+            'a SERMAS biological mother',
+            { regimes: ['sermas', 'sermas'], biologicalMother: 0 },
+            'gestation',
+        ],
+        ['SERMAS without a biological mother', { regimes: ['sermas', 'sermas'] }, 'lactancia'],
+        ['EBEP', { regimes: ['ebep', 'ebep'] }, 'lactancia'],
+    ] as [string, Partial<WizardInput>, LeaveType][])(
+        'survives %s',
+        (_label, overrides, expectedType) => {
+            const data = makeData(overrides);
+            const emitted = data.schedule.flatMap((parent) => parent.periods.map((p) => p.type));
+            expect(emitted).toContain(expectedType);
+
+            expect(validateWizardData(data)).not.toBeNull();
+            expect(decompressWizardData(compressWizardData(data, new Set()))?.data).toEqual(data);
+        },
+    );
 });
 
 describe('validateWizardData', () => {

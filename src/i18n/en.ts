@@ -1,4 +1,5 @@
 export interface TranslationKeys {
+    documentTitle: string;
     wizardTitle: string;
     wizardSubtitle: string;
     back: string;
@@ -155,6 +156,7 @@ export interface TranslationKeys {
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export const en: TranslationKeys = {
+    documentTitle: 'Parental Leave Planner (Spain)',
     wizardTitle: '🇪🇸 Parental Leave Planner',
     wizardSubtitle: 'Plan your Spanish birth and childcare leave',
     back: '← Back',

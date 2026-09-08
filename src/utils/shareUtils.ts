@@ -1,6 +1,7 @@
 import LZString from 'lz-string';
 import {
     COLOR_PALETTES,
+    LEAVE_TYPES,
     MAX_ANTICIPATED_WEEKS,
     MAX_BABIES,
     MAX_CONVENIO_DAYS,
@@ -10,6 +11,7 @@ import {
 import type {
     ComputedParentSchedule,
     ComputedPeriod,
+    ExtraPresetKey,
     LeaveType,
     Regime,
     WizardData,
@@ -22,15 +24,14 @@ export interface SharedPayload {
     hiddenParents: number[];
 }
 
-const LEAVE_TYPE_VALUES: LeaveType[] = [
-    'anticipated',
-    'mandatory',
-    'flexible',
-    'cuidado',
-    'lactancia',
-    'extra',
+const LEAVE_TYPE_VALUES: LeaveType[] = Object.values(LEAVE_TYPES);
+const EXTRA_PRESET_VALUES: ExtraPresetKey[] = [
+    'vacation',
+    'parental',
+    'unpaid',
+    'custom',
+    'flexible-extra',
 ];
-const EXTRA_PRESET_VALUES = ['vacation', 'parental', 'unpaid', 'custom', 'flexible-extra'];
 
 function isRecord(x: unknown): x is Record<string, unknown> {
     return typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -47,7 +48,7 @@ function isPeriod(x: unknown): x is ComputedPeriod {
     if (x.days !== null && !isInt(x.days, 0, 10_000)) return false;
     if (x.type === 'extra') {
         if (typeof x.extraId !== 'string' || x.extraId.length > 64) return false;
-        if (!EXTRA_PRESET_VALUES.includes(x.extraPresetKey as string)) return false;
+        if (!EXTRA_PRESET_VALUES.includes(x.extraPresetKey as ExtraPresetKey)) return false;
         if (
             x.extraName !== undefined &&
             (typeof x.extraName !== 'string' || x.extraName.length > 80)

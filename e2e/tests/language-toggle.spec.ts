@@ -13,6 +13,8 @@ test.describe('Language toggle', () => {
         await wizard.goto();
         await expect(heading).toContainText('Parental Leave Planner');
         await expect(langToggle).toHaveText('🇪🇸 ES');
+        await expect(page).toHaveTitle('Parental Leave Planner (Spain)');
+        await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 
         await wizard.fillDueDate();
         await wizard.next();
@@ -22,6 +24,8 @@ test.describe('Language toggle', () => {
 
         await expect(heading).toContainText('Planificador de Permiso Parental');
         await expect(langToggle).toHaveText('🇬🇧 EN');
+        await expect(page).toHaveTitle('Planificador de Permiso Parental (España)');
+        await expect(page.locator('html')).toHaveAttribute('lang', 'es');
         await expect(page.getByTestId('parent-count-btn-2')).toContainText('Dos progenitores');
         await expect(wizard.nextBtn).toHaveText('Siguiente →');
     });

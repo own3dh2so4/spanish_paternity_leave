@@ -36,9 +36,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLangState(newLang);
     }, []);
 
-    // Keep html lang attribute in sync
     useEffect(() => {
         document.documentElement.lang = lang;
+        document.title = TRANSLATIONS[lang].documentTitle;
     }, [lang]);
 
     return (

@@ -149,4 +149,6 @@ export function paletteFor(colorId: string | undefined, index: number): ColorPal
     return COLOR_PALETTES[PALETTE_IDS[index % PALETTE_IDS.length]];
 }
 
+export const MAX_DURATION_VALUE = 999;
+
 export const STORAGE_KEY = 'paternity_leave_data';
