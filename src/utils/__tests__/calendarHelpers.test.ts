@@ -98,7 +98,11 @@ describe('resizePeriod', () => {
             (m, p) => (p.endDate > m ? p.endDate : m),
             '',
         );
-        expect(find(parentAt(shorter, 1), 'flexible').startDate).toBe(firstReturn);
+        const takeover = at(
+            parentAt(shorter, 1).periods.filter((p) => p.type !== 'mandatory'),
+            0,
+        );
+        expect(takeover.startDate).toBe(firstReturn);
     });
 });
 

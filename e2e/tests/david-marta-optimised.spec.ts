@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { WizardPage } from '../page-objects/WizardPage';
 import { CalendarPage } from '../page-objects/CalendarPage';
+import { findOverlap } from '../utils/dateRanges';
 
 /**
  * David and Marta plan staggered leave. Marta stays home first, reorders her
  * lactancia before her flexible weeks by dragging, then extends lactancia to
- * one month. David's flexible weeks must cascade to start when Marta finishes;
- * his own lactancia stays on his return to work after the mandatory block, so it
- * sits inside Marta's leave by design.
+ * one month. David then takes over the moment Marta finishes, starting with his
+ * own lactancia, so no day is shared.
  */
 test.describe('David & Marta — staggered mode with reordering and duration edit', () => {
     test('Marta reorders and extends lactancia; David cascades with no overlaps', async ({
@@ -62,15 +62,18 @@ test.describe('David & Marta — staggered mode with reordering and duration edi
         expect(martaRanges.length).toBeGreaterThan(0);
 
         const martaLastEnd = Math.max(...martaRanges.map((r) => r.end));
+        const davidLactancia = await calendar.rangeOf(DAVID, 'lactancia');
         const davidFlexible = await calendar.rangeOf(DAVID, 'flexible');
-        expect(davidFlexible.start).toBe(martaLastEnd);
+        expect(davidLactancia.start).toBe(martaLastEnd);
+        expect(davidFlexible.start).toBe(davidLactancia.end);
         expect(davidFlexible.start).toBeGreaterThan(davidFlexibleBefore.start);
 
-        const martaFlexibleAfter = await calendar.rangeOf(MARTA, 'flexible');
-        expect(davidFlexible.start >= martaFlexibleAfter.end).toBe(true);
-
-        const davidMandatory = await calendar.rangeOf(DAVID, 'mandatory');
-        const davidLactancia = await calendar.rangeOf(DAVID, 'lactancia');
-        expect(davidLactancia.start).toBe(davidMandatory.end);
+        const overlap = findOverlap(davidRanges, martaRanges);
+        expect(
+            overlap,
+            overlap
+                ? `David ${overlap[0].start}→${overlap[0].end} overlaps Marta ${overlap[1].start}→${overlap[1].end}`
+                : undefined,
+        ).toBeNull();
     });
 });

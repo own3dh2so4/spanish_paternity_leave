@@ -10,6 +10,14 @@ const weeksOf = (parent: ComputedParentSchedule, type: LeaveType) => {
     return p ? daysBetween(parseLocalDate(p.startDate), parseLocalDate(p.endDate)) / 7 : 0;
 };
 const period = periodOf;
+const lastEndOf = (parent: ComputedParentSchedule) =>
+    parent.periods.reduce((m, p) => (p.endDate > m ? p.endDate : m), '');
+/** First period the waiting parent takes once the other one hands over. */
+const takeover = (parent: ComputedParentSchedule) =>
+    at(
+        parent.periods.filter((p) => p.type !== 'mandatory'),
+        0,
+    );
 
 describe('calculateLactanciaDays', () => {
     it('accumulates one hour per working day until the ninth month into full days', () => {
@@ -120,16 +128,30 @@ describe('calculateLeaveSchedule — biological mother anticipation', () => {
 });
 
 describe('calculateLeaveSchedule — optimized (staggered)', () => {
-    it('starts the second parent’s flexible weeks when the first parent returns to work', () => {
+    it('hands over to the second parent when the first finishes everything', () => {
         const schedule = calculateLeaveSchedule(
             makeInput({ leaveMode: 'optimized', firstParent: 0 }),
         );
-        const firstReturn = parentAt(schedule, 0).periods.reduce(
-            (m, p) => (p.endDate > m ? p.endDate : m),
-            '',
-        );
-        expect(period(parentAt(schedule, 1), 'flexible').startDate).toBe(firstReturn);
+        expect(takeover(parentAt(schedule, 1)).startDate).toBe(lastEndOf(parentAt(schedule, 0)));
         expect(period(parentAt(schedule, 1), 'mandatory').startDate).toBe(DUE_DATE);
+    });
+
+    it('waits for the first parent holiday too before handing over', () => {
+        const schedule = calculateLeaveSchedule(
+            makeInput({
+                leaveMode: 'optimized',
+                firstParent: 0,
+                vacationDays: [15, 0],
+                vacationUnit: ['workdays', 'workdays'],
+            }),
+        );
+        const holiday = at(
+            parentAt(schedule, 0).periods.filter((p) => p.isExtra),
+            0,
+        );
+
+        expect(holiday.endDate).toBe(lastEndOf(parentAt(schedule, 0)));
+        expect(takeover(parentAt(schedule, 1)).startDate).toBe(holiday.endDate);
     });
 
     it('respects firstParent = 1', () => {
@@ -140,17 +162,16 @@ describe('calculateLeaveSchedule — optimized (staggered)', () => {
         expect(period(parentAt(schedule, 0), 'flexible').startDate > '2026-11-12').toBe(true);
     });
 
-    it('accrues the waiting parent lactancia from their mandatory end, not their late return', () => {
+    it('accrues the waiting parent lactancia from the handover, not from after their flexible weeks', () => {
         const schedule = calculateLeaveSchedule(
             makeInput({ leaveMode: 'optimized', firstParent: 0 }),
         );
         const waiting = parentAt(schedule, 1);
-        const mandatory = period(waiting, 'mandatory');
         const lactancia = period(waiting, 'lactancia');
 
-        expect(lactancia.startDate).toBe(mandatory.endDate);
+        expect(lactancia.startDate).toBe(lastEndOf(parentAt(schedule, 0)));
         expect(lactancia.days).toBe(
-            calculateLactanciaDays(parseLocalDate(mandatory.endDate), parseLocalDate(DUE_DATE)),
+            calculateLactanciaDays(parseLocalDate(lactancia.startDate), parseLocalDate(DUE_DATE)),
         );
     });
 
@@ -180,14 +201,18 @@ describe('calculateLeaveSchedule — optimized (staggered)', () => {
         ]);
     });
 
-    it('never overlaps the two parents\u2019 flexible blocks, which is what staggering buys', () => {
+    it('never overlaps editable periods of the two parents', () => {
         const schedule = calculateLeaveSchedule(
             makeInput({ leaveMode: 'optimized', firstParent: 0 }),
         );
-        const a = period(parentAt(schedule, 0), 'flexible');
-        const b = period(parentAt(schedule, 1), 'flexible');
+        const a = parentAt(schedule, 0).periods.filter((p) => p.type !== 'mandatory');
+        const b = parentAt(schedule, 1).periods.filter((p) => p.type !== 'mandatory');
 
-        expect(a.startDate < b.endDate && b.startDate < a.endDate).toBe(false);
+        for (const x of a) {
+            for (const y of b) {
+                expect(x.startDate < y.endDate && y.startDate < x.endDate).toBe(false);
+            }
+        }
     });
 
     it('leaves the starting parent lactancia where their leave actually ends', () => {
@@ -373,8 +398,7 @@ describe('calculateLeaveSchedule — holiday declared in the wizard', () => {
         );
 
         expect(
-            period(parentAt(withHoliday, 1), 'flexible').startDate >
-                period(parentAt(without, 1), 'flexible').startDate,
+            takeover(parentAt(withHoliday, 1)).startDate > takeover(parentAt(without, 1)).startDate,
         ).toBe(true);
     });
 });
@@ -414,11 +438,8 @@ describe('calculateLeaveSchedule — keeping the weeks until age 8 for later', (
             makeInput({ ...opts, useExtraWeeks: [false, false] }),
         );
         expect(
-            period(parentAt(without, 1), 'flexible').startDate <
-                period(parentAt(withWeeks, 1), 'flexible').startDate,
+            takeover(parentAt(without, 1)).startDate < takeover(parentAt(withWeeks, 1)).startDate,
         ).toBe(true);
-        expect(period(parentAt(without, 1), 'flexible').startDate).toBe(
-            parentAt(without, 0).periods.reduce((m, p) => (p.endDate > m ? p.endDate : m), ''),
-        );
+        expect(takeover(parentAt(without, 1)).startDate).toBe(lastEndOf(parentAt(without, 0)));
     });
 });

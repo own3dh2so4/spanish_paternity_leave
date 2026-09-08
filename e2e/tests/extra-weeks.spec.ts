@@ -57,7 +57,7 @@ test.describe('Extra weeks until age 8', () => {
             firstParent: 0,
         });
         await calendar.expectLoaded();
-        const samFlexibleWithExtra = await calendar.rangeOf(1, 'flexible');
+        const samTakeoverWithExtra = await calendar.rangeOf(1, 'lactancia');
 
         await calendar.clickReset();
         await wizard.complete({
@@ -69,10 +69,12 @@ test.describe('Extra weeks until age 8', () => {
         await calendar.expectLoaded();
 
         await expect(calendar.row(0, 'cuidado')).toHaveCount(0);
+        // Sam takes over the moment Alex finishes, starting with the lactancia, so
+        // dropping Alex's two weeks pulls the handover forward by exactly that much.
         const alexEnd = await lastPeriodEnd(calendar, 0);
-        const samFlexible = await calendar.rangeOf(1, 'flexible');
-        expect(samFlexible.start).toBe(alexEnd);
-        expect(daysBetween(samFlexible.start, samFlexibleWithExtra.start)).toBe(
+        const samTakeover = await calendar.rangeOf(1, 'lactancia');
+        expect(samTakeover.start).toBe(alexEnd);
+        expect(daysBetween(samTakeover.start, samTakeoverWithExtra.start)).toBe(
             CUIDADO_DAYS_COUPLE,
         );
     });

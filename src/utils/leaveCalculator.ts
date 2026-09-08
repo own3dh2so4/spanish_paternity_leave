@@ -72,46 +72,47 @@ function buildParent(
     periods.push(makePeriod(LEAVE_TYPES.MANDATORY, birth, mandatoryEnd));
 
     const flexibleWeeks = allowance.flexibleWeeks - anticipatedWeeks;
-    const flexibleStart =
+    const handover =
         flexibleStartFloor && flexibleStartFloor > mandatoryEnd ? flexibleStartFloor : mandatoryEnd;
-    const flexibleEnd = addDays(flexibleStart, 7 * flexibleWeeks);
 
-    /**
-     * The staggered parent whose flexible block waits goes back to work when the
-     * mandatory block ends, so their estimated lactancia accrues from there
-     * instead of from the far later return — an earlier anchor is more days.
-     */
-    const estimatesLactancia = rules.lactanciaFixedNaturalDays === null;
-    const lactanciaOnReturnToWork = flexibleStart > mandatoryEnd && estimatesLactancia;
-
-    const pushEstimatedLactancia = (from: Date): Date => {
+    const pushLactancia = (from: Date): Date => {
+        if (rules.lactanciaFixedNaturalDays !== null) {
+            const end = addDays(from, rules.lactanciaFixedNaturalDays * input.babies);
+            periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, from, end, null));
+            return end;
+        }
         const lactanciaDays = calculateLactanciaDays(from, birth, rules.lactanciaMonths);
         if (lactanciaDays === 0) return from;
-        const lactanciaEnd = addWorkingDays(from, lactanciaDays);
-        periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, from, lactanciaEnd, lactanciaDays));
-        return lactanciaEnd;
+        const end = addWorkingDays(from, lactanciaDays);
+        periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, from, end, lactanciaDays));
+        return end;
     };
 
-    if (lactanciaOnReturnToWork) pushEstimatedLactancia(mandatoryEnd);
+    /**
+     * The staggered parent whose block waits keeps working until the other one
+     * finishes everything, and takes over starting with the lactancia. Accruing
+     * from the handover instead of from after their flexible weeks is more days,
+     * and it keeps the two of them from being off at the same time.
+     */
+    const lactanciaOnHandover = handover > mandatoryEnd;
 
+    let cursor = handover;
+    if (lactanciaOnHandover) cursor = pushLactancia(cursor);
+
+    const flexibleStart = cursor;
+    const flexibleEnd = addDays(flexibleStart, 7 * flexibleWeeks);
     if (flexibleWeeks > 0) {
         periods.push(makePeriod(LEAVE_TYPES.FLEXIBLE, flexibleStart, flexibleEnd));
     }
 
-    let cursor = flexibleEnd;
+    cursor = flexibleEnd;
     if (convenioDays > 0) {
         const convenioEnd = addDays(cursor, convenioDays);
         periods.push(makePeriod(LEAVE_TYPES.CONVENIO, cursor, convenioEnd));
         cursor = convenioEnd;
     }
 
-    if (rules.lactanciaFixedNaturalDays !== null) {
-        const lactanciaEnd = addDays(cursor, rules.lactanciaFixedNaturalDays * input.babies);
-        periods.push(makePeriod(LEAVE_TYPES.LACTANCIA, cursor, lactanciaEnd, null));
-        cursor = lactanciaEnd;
-    } else if (!lactanciaOnReturnToWork) {
-        cursor = pushEstimatedLactancia(cursor);
-    }
+    if (!lactanciaOnHandover) cursor = pushLactancia(cursor);
 
     if (usesExtraWeeks(input, parentIndex) && allowance.extraUntil8Weeks > 0) {
         const cuidadoEnd = addDays(cursor, 7 * allowance.extraUntil8Weeks);
