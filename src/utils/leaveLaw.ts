@@ -2,6 +2,7 @@ import {
     CHILD_EIGHTH_BIRTHDAY_YEARS,
     CHILD_FIRST_BIRTHDAY_MONTHS,
     EXTENSION_WEEKS,
+    EXTRA_WEEKS_RETROACTIVE_START,
     EXTRA_WEEKS_UNTIL_8,
     FLEXIBLE_WEEKS,
     LEAVE_TYPES,
@@ -19,14 +20,42 @@ import type {
 } from '../types';
 import { addMonths, addYears, daysBetween, formatDateKey, parseLocalDate } from './dates';
 
-type AllowanceInput = Pick<WizardInput, 'parentCount' | 'babies' | 'disability'>;
+type AllowanceInput = Pick<WizardInput, 'parentCount' | 'babies' | 'disability'> & {
+    dueDate?: string;
+};
 
 export function isSingleParent(input: Pick<WizardInput, 'parentCount'>): boolean {
     return input.parentCount === 1;
 }
 
+/** Births from 02/08/2024 to 30/07/2025: only the paid weeks until age 8 (RDL 9/2025 DT). */
+export function isExtraWeeksOnlyRegime(dueDate: string): boolean {
+    return dueDate >= EXTRA_WEEKS_RETROACTIVE_START && dueDate < NEW_REGIME_START;
+}
+
+export function isUnsupportedDueDate(dueDate: string): boolean {
+    return dueDate < EXTRA_WEEKS_RETROACTIVE_START;
+}
+
+/** Shared date bounds for due-date pickers (wizard + calendar header). */
+export function dueDatePickerBounds(today = new Date()): { minDate: Date; maxDate: Date } {
+    const day = new Date(today);
+    day.setHours(0, 0, 0, 0);
+    return {
+        minDate: parseLocalDate(EXTRA_WEEKS_RETROACTIVE_START),
+        maxDate: addYears(day, 2),
+    };
+}
+
 export function getLeaveAllowance(input: AllowanceInput): LeaveAllowance {
     const family = isSingleParent(input) ? 'single' : 'couple';
+    if (input.dueDate && isExtraWeeksOnlyRegime(input.dueDate)) {
+        return {
+            mandatoryWeeks: 0,
+            flexibleWeeks: 0,
+            extraUntil8Weeks: EXTRA_WEEKS_UNTIL_8[family],
+        };
+    }
     const extraChildren = Math.max(0, input.babies - 1);
     const extensions = extraChildren + (input.disability ? 1 : 0);
     return {

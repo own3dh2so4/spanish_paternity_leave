@@ -19,6 +19,7 @@ export interface TranslationKeys {
     dueDateDescription: string;
     dueDatePlaceholder: string;
     oldRegimeWarning: string;
+    transitionalExtraWeeksNotice: string;
 
     parentCountTitle: string;
     parentCountTwo: string;
@@ -184,7 +185,9 @@ export const en: TranslationKeys = {
         'Enter the expected due date, or the actual birth date if the baby is already born. You can change it later from the calendar.',
     dueDatePlaceholder: 'Select a date…',
     oldRegimeWarning:
-        'Births before 31 July 2025 fall under the previous rules (16 weeks). This planner only models the current regime.',
+        'Births before 2 August 2024 are outside this planner. From that date you can plan the 2 (or 4) paid weeks until age 8; from 31 July 2025 the full 19/32-week regime applies.',
+    transitionalExtraWeeksNotice:
+        'Births from 2 August 2024 to 30 July 2025 already used the previous 16-week leave. This planner only schedules the additional paid weeks until age 8 (2 per parent, 4 for a single parent), which can be taken until the child turns 8.',
 
     parentCountTitle: 'What kind of family?',
     parentCountTwo: 'Two parents',
@@ -245,7 +248,7 @@ export const en: TranslationKeys = {
     shareSuccess: 'Link copied to clipboard!',
     shareError: 'Could not copy the link',
     legalDisclaimer:
-        'Planning tool based on art. 48.4 of the Spanish Workers’ Statute (as amended by RDL 9/2025). It is not legal advice: confirm dates with your employer and the INSS.',
+        'Planning tool based on art. 48.4 of the Spanish Workers’ Statute (as amended by RDL 9/2025). It is not legal advice: the benefit is 100% of the regulatory base (with caps), not necessarily full salary; give at least 15 days’ notice per period; you must be registered with Social Security at the start of each block. Confirm dates with your employer and the INSS.',
 
     requiredByLaw: '🔒 Required by law',
     requiredByLawTooltip:
@@ -262,7 +265,7 @@ export const en: TranslationKeys = {
     warnAfterFirstBirthday: 'Flexible weeks must be used before the child turns 12 months.',
     warnAfterEighthBirthday: 'These weeks must be used before the child turns 8.',
     lactanciaEstimateHint:
-        'Estimate: one hour per working day until 9 months, accumulated into full days. Your collective agreement may differ.',
+        'Estimate: one hour per working day (two for twins, and so on) until 9 months, accumulated into full days. Your collective agreement may differ.',
 
     workTimeline: '🏢 Work timeline',
     stopsWorking: 'Stops working',

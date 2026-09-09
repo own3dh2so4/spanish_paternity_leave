@@ -9,6 +9,8 @@ export const EXTENSION_WEEKS = { couple: 1, single: 2 } as const;
 export const MAX_ANTICIPATED_WEEKS = 4;
 export const MAX_BABIES = 3;
 export const NEW_REGIME_START = '2025-07-31';
+/** RDL 9/2025 transitional: 2 (4) paid weeks until age 8 apply from this date. */
+export const EXTRA_WEEKS_RETROACTIVE_START = '2024-08-02';
 export const CHILD_FIRST_BIRTHDAY_MONTHS = 12;
 export const CHILD_EIGHTH_BIRTHDAY_YEARS = 8;
 export const PARENTAL_LEAVE_WEEKS = 8;

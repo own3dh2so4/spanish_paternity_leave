@@ -9,6 +9,8 @@ parents and shows it on a calendar, together with an estimate of the accumulated
 
 Applies to births from **31 July 2025**. Everything is counted in **natural days**; a week is 7 days.
 
+Births from **2 August 2024** to **30 July 2025** already used the previous 16-week leave; the planner only schedules the additional paid weeks until age 8 (2 per parent, 4 for a single parent).
+
 | | Two parents (each) | Single-parent family |
 |---|---|---|
 | Mandatory, full-time, starting on the birth date | 6 weeks | 6 weeks |

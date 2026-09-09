@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, es } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
+import { EXTRA_WEEKS_RETROACTIVE_START } from '../../constants';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { addMonths, addYears, formatDateKey, parseLocalDate } from '../../utils/dates';
-import { isBeforeNewRegime } from '../../utils/leaveLaw';
+import { addYears, formatDateKey, parseLocalDate } from '../../utils/dates';
+import { isExtraWeeksOnlyRegime, isUnsupportedDueDate } from '../../utils/leaveLaw';
 
 registerLocale('en-GB', enGB);
 registerLocale('es', es);
@@ -20,7 +21,10 @@ export default function StepDueDate({ value, onChange }: Props) {
     const { minDate, maxDate } = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return { minDate: addMonths(today, -12), maxDate: addYears(today, 1) };
+        return {
+            minDate: parseLocalDate(EXTRA_WEEKS_RETROACTIVE_START),
+            maxDate: addYears(today, 2),
+        };
     }, []);
 
     const selectedDate = useMemo(() => (value ? parseLocalDate(value) : null), [value]);
@@ -48,9 +52,18 @@ export default function StepDueDate({ value, onChange }: Props) {
                     ariaLabelledBy="due-date-title"
                 />
             </div>
-            {value && isBeforeNewRegime(value) && (
+            {value && isUnsupportedDueDate(value) && (
                 <p className="wizard-notice wizard-notice--warning" role="status">
                     {t.oldRegimeWarning}
+                </p>
+            )}
+            {value && isExtraWeeksOnlyRegime(value) && (
+                <p
+                    className="wizard-notice wizard-notice--warning"
+                    role="status"
+                    data-testid="transitional-regime-notice"
+                >
+                    {t.transitionalExtraWeeksNotice}
                 </p>
             )}
         </div>

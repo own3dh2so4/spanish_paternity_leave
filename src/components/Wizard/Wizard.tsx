@@ -18,6 +18,7 @@ import type {
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
 import HeaderControls from '../HeaderControls';
+import { isExtraWeeksOnlyRegime } from '../../utils/leaveLaw';
 import './Wizard.css';
 
 interface Props {
@@ -75,6 +76,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     const motherIndex =
         biologicalMother !== null && biologicalMother < parentCount ? biologicalMother : null;
     const firstParent = chosenFirstParent ?? motherIndex ?? 0;
+    const extraWeeksOnly = dueDate !== '' && isExtraWeeksOnlyRegime(dueDate);
 
     const allSteps: { id: StepId; label: string }[] = [
         { id: 'dueDate', label: t.stepDueDate },
@@ -86,8 +88,9 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     ];
 
     const visibleSteps = allSteps.filter((s) => {
-        if (s.id === 'leaveMode') return parentCount === 2;
-        if (s.id === 'firstParent') return parentCount === 2 && leaveMode === LEAVE_MODES.OPTIMIZED;
+        if (s.id === 'leaveMode') return parentCount === 2 && !extraWeeksOnly;
+        if (s.id === 'firstParent')
+            return parentCount === 2 && leaveMode === LEAVE_MODES.OPTIMIZED && !extraWeeksOnly;
         return true;
     });
     const totalSteps = visibleSteps.length;
@@ -114,7 +117,8 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
     };
 
     const handleSubmit = () => {
-        const effectiveMode = parentCount === 2 ? leaveMode : LEAVE_MODES.TOGETHER;
+        const effectiveMode =
+            parentCount === 2 && !extraWeeksOnly ? leaveMode : LEAVE_MODES.TOGETHER;
         const mother = motherIndex;
         onComplete({
             version: WIZARD_DATA_VERSION,
@@ -141,7 +145,13 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
             case 'dueDate':
                 return <StepDueDate value={dueDate} onChange={setDueDate} />;
             case 'parentCount':
-                return <StepParentCount value={parentCount} onChange={setParentCount} />;
+                return (
+                    <StepParentCount
+                        value={parentCount}
+                        onChange={setParentCount}
+                        dueDate={dueDate}
+                    />
+                );
             case 'names':
                 return (
                     <StepNames
@@ -156,6 +166,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
                 return (
                     <StepDetails
                         parentCount={parentCount}
+                        dueDate={dueDate}
                         names={names.slice(0, parentCount)}
                         babies={babies}
                         onChangeBabies={setBabies}
@@ -243,6 +254,7 @@ export default function Wizard({ onComplete, initialData, invalidShareLink = fal
                         {step === totalSteps - 1 ? t.calculate : t.next}
                     </button>
                 </div>
+                <p className="legal-disclaimer wizard-legal-disclaimer">{t.legalDisclaimer}</p>
             </div>
         </div>
     );

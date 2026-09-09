@@ -25,7 +25,9 @@ export const es: TranslationKeys = {
         'Introduce la fecha prevista de parto o, si el bebé ya ha nacido, la fecha de nacimiento. Podrás cambiarla desde el calendario.',
     dueDatePlaceholder: 'Selecciona una fecha…',
     oldRegimeWarning:
-        'Los nacimientos anteriores al 31 de julio de 2025 se rigen por la normativa anterior (16 semanas). Este planificador sólo modela el régimen vigente.',
+        'Los nacimientos anteriores al 2 de agosto de 2024 quedan fuera de este planificador. Desde esa fecha puedes planificar las 2 (o 4) semanas retribuidas hasta los 8 años; desde el 31 de julio de 2025 aplica el régimen completo de 19/32 semanas.',
+    transitionalExtraWeeksNotice:
+        'Los nacimientos entre el 2 de agosto de 2024 y el 30 de julio de 2025 ya disfrutaron el permiso anterior de 16 semanas. Este planificador sólo programa las semanas retribuidas adicionales hasta los 8 años (2 por progenitor, 4 en monoparentalidad), disfrutables hasta que el menor cumpla 8.',
 
     parentCountTitle: '¿Qué tipo de familia sois?',
     parentCountTwo: 'Dos progenitores',
@@ -87,7 +89,7 @@ export const es: TranslationKeys = {
     shareSuccess: '¡Enlace copiado al portapapeles!',
     shareError: 'No se pudo copiar el enlace',
     legalDisclaimer:
-        'Herramienta de planificación basada en el art. 48.4 del Estatuto de los Trabajadores (RDL 9/2025). No es asesoramiento legal: confirma las fechas con tu empresa y con el INSS.',
+        'Herramienta de planificación basada en el art. 48.4 del Estatuto de los Trabajadores (RDL 9/2025). No es asesoramiento legal: la prestación es el 100 % de la base reguladora (con topes), no necesariamente el salario íntegro; comunica cada periodo con al menos 15 días de antelación; debes estar en alta en la Seguridad Social al inicio de cada bloque. Confirma las fechas con tu empresa y con el INSS.',
 
     requiredByLaw: '🔒 Obligatorio por ley',
     requiredByLawTooltip:
@@ -105,7 +107,7 @@ export const es: TranslationKeys = {
         'Las semanas flexibles deben disfrutarse antes de que el menor cumpla 12 meses.',
     warnAfterEighthBirthday: 'Estas semanas deben disfrutarse antes de que el menor cumpla 8 años.',
     lactanciaEstimateHint:
-        'Estimación: una hora por día laborable hasta los 9 meses, acumulada en jornadas completas. Tu convenio puede establecer otra cosa.',
+        'Estimación: una hora por día laborable (dos en gemelos, y así sucesivamente) hasta los 9 meses, acumulada en jornadas completas. Tu convenio puede establecer otra cosa.',
 
     workTimeline: '🏢 Calendario laboral',
     stopsWorking: 'Deja de trabajar',

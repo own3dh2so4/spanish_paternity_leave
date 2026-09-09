@@ -12,6 +12,7 @@ import { defaultConvenioDays, getLeaveAllowance } from '../../utils/leaveLaw';
 
 interface Props {
     parentCount: 1 | 2;
+    dueDate: string;
     names: string[];
     babies: number;
     onChangeBabies: (n: number) => void;
@@ -71,6 +72,7 @@ function Chips<T extends string | number | boolean | null>({
 
 export default function StepDetails({
     parentCount,
+    dueDate,
     names,
     babies,
     onChangeBabies,
@@ -92,7 +94,7 @@ export default function StepDetails({
     onChangeVacationUnit,
 }: Props) {
     const { t } = useLanguage();
-    const allowance = getLeaveAllowance({ parentCount, babies, disability });
+    const allowance = getLeaveAllowance({ parentCount, babies, disability, dueDate });
     const motherIdx =
         biologicalMother !== null && biologicalMother < parentCount ? biologicalMother : null;
     const motherRegime = motherIdx !== null ? (regimes[motherIdx] ?? 'et') : 'et';

@@ -38,6 +38,17 @@ describe('calculateLactanciaDays', () => {
         const birth = parseLocalDate(DUE_DATE);
         expect(calculateLactanciaDays(birth, birth)).toBeGreaterThan(15);
     });
+
+    it('doubles the daily hours for twins under art. 37.4 ET', () => {
+        const birth = parseLocalDate(DUE_DATE);
+        const returnToWork = parseLocalDate('2027-01-28');
+        const workdays = countWorkingDays(returnToWork, addMonths(birth, 9));
+        const single = calculateLactanciaDays(returnToWork, birth, 9, 1);
+        const twins = calculateLactanciaDays(returnToWork, birth, 9, 2);
+        expect(single).toBe(Math.floor(workdays / 8));
+        expect(twins).toBe(Math.floor((workdays * 2) / 8));
+        expect(twins).toBeGreaterThan(single);
+    });
 });
 
 describe('calculateLeaveSchedule — couple, together', () => {
@@ -103,6 +114,52 @@ describe('calculateLeaveSchedule — extensions', () => {
             makeInput({ parentCount: 1, babies: 2, disability: true }),
         );
         expect(weeksOf(single, 'flexible')).toBe(26);
+    });
+
+    it('doubles estimated lactancia days for twins in the private sector', () => {
+        const [twins = missing('twins')] = calculateLeaveSchedule(makeInput({ babies: 2 }));
+        const [one = missing('one')] = calculateLeaveSchedule(makeInput({ babies: 1 }));
+        const oneDays = period(one, 'lactancia').days ?? 0;
+        const twinDays = period(twins, 'lactancia').days ?? 0;
+        expect(twinDays).toBeGreaterThan(oneDays);
+        expect(twinDays).toBe(
+            Math.floor(
+                (countWorkingDays(
+                    parseLocalDate(period(twins, 'lactancia').startDate),
+                    addMonths(parseLocalDate(DUE_DATE), 9),
+                ) *
+                    2) /
+                    8,
+            ),
+        );
+    });
+});
+
+describe('calculateLeaveSchedule — transitional extra weeks only', () => {
+    it('schedules only the weeks until age 8 for births from 2 Aug 2024 to 30 Jul 2025', () => {
+        const schedule = calculateLeaveSchedule(
+            makeInput({ dueDate: '2025-01-15', parentCount: 2 }),
+        );
+        expect(schedule).toHaveLength(2);
+        for (const parent of schedule) {
+            expect(parent.allowance).toEqual({
+                mandatoryWeeks: 0,
+                flexibleWeeks: 0,
+                extraUntil8Weeks: 2,
+            });
+            expect(parent.periods.map((p) => p.type)).toEqual(['cuidado']);
+            expect(weeksOf(parent, 'cuidado')).toBe(2);
+            expect(period(parent, 'cuidado').startDate).toBe('2025-01-15');
+        }
+    });
+
+    it('gives a single parent 4 weeks until age 8 in the transitional window', () => {
+        const [parent = missing('parent')] = calculateLeaveSchedule(
+            makeInput({ dueDate: '2024-08-02', parentCount: 1 }),
+        );
+        expect(parent.allowance.extraUntil8Weeks).toBe(4);
+        expect(weeksOf(parent, 'cuidado')).toBe(4);
+        expect(parent.periods.some((p) => p.type === 'mandatory')).toBe(false);
     });
 });
 

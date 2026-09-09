@@ -4,14 +4,20 @@ import { getLeaveAllowance } from '../../utils/leaveLaw';
 interface Props {
     value: number;
     onChange: (count: 1 | 2) => void;
+    dueDate: string;
 }
 
-function totalWeeks(parentCount: 1 | 2): number {
-    const a = getLeaveAllowance({ parentCount, babies: 1, disability: false });
+function totalWeeks(parentCount: 1 | 2, dueDate: string): number {
+    const a = getLeaveAllowance({
+        parentCount,
+        babies: 1,
+        disability: false,
+        dueDate: dueDate || undefined,
+    });
     return a.mandatoryWeeks + a.flexibleWeeks + a.extraUntil8Weeks;
 }
 
-export default function StepParentCount({ value, onChange }: Props) {
+export default function StepParentCount({ value, onChange, dueDate }: Props) {
     const { t } = useLanguage();
     return (
         <div className="wizard-step fade-in">
@@ -30,7 +36,7 @@ export default function StepParentCount({ value, onChange }: Props) {
                         👥
                     </span>
                     <span className="toggle-label">{t.parentCountTwo}</span>
-                    <span className="toggle-hint">{t.parentCountTwoDesc(totalWeeks(2))}</span>
+                    <span className="toggle-hint">{t.parentCountTwoDesc(totalWeeks(2, dueDate))}</span>
                 </button>
                 <button
                     type="button"
@@ -44,7 +50,9 @@ export default function StepParentCount({ value, onChange }: Props) {
                         👤
                     </span>
                     <span className="toggle-label">{t.parentCountSingle}</span>
-                    <span className="toggle-hint">{t.parentCountSingleDesc(totalWeeks(1))}</span>
+                    <span className="toggle-hint">
+                        {t.parentCountSingleDesc(totalWeeks(1, dueDate))}
+                    </span>
                 </button>
             </div>
         </div>

@@ -4,6 +4,7 @@ import type { TranslationKeys } from '../../i18n/en';
 import type { Language } from '../../i18n/LanguageContext';
 import type { Theme } from '../../theme/ThemeContext';
 import { formatDisplayDate, parseLocalDate } from '../../utils/dates';
+import { dueDatePickerBounds } from '../../utils/leaveLaw';
 import HeaderControls from '../HeaderControls';
 
 interface Props {
@@ -36,6 +37,7 @@ export default function CalendarHeader({
     onToggleTheme,
 }: Props) {
     const dueDate = parseLocalDate(data.dueDate);
+    const { minDate, maxDate } = dueDatePickerBounds();
     return (
         <header className="calendar-header">
             <div className="header-left">
@@ -47,6 +49,8 @@ export default function CalendarHeader({
                         onChange={onDueDateChange}
                         dateFormat="dd/MM/yyyy"
                         locale={t.datePickerLocale}
+                        minDate={minDate}
+                        maxDate={maxDate}
                         calendarClassName="dp-dark"
                         showMonthDropdown
                         showYearDropdown

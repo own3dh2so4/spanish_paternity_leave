@@ -4,6 +4,7 @@ import { makeData } from '../../test-fixtures';
 import type { ComputedPeriod, Regime } from '../../types';
 import {
     defaultConvenioDays,
+    dueDatePickerBounds,
     eighthBirthday,
     firstBirthday,
     getAnticipatedWeeks,
@@ -14,6 +15,8 @@ import {
     getPeriodWarning,
     getRemainingFlexWeeks,
     isBeforeNewRegime,
+    isExtraWeeksOnlyRegime,
+    isUnsupportedDueDate,
 } from '../leaveLaw';
 
 describe('getLeaveAllowance', () => {
@@ -118,6 +121,46 @@ describe('birthdays and regime', () => {
     it('flags births before 31 July 2025', () => {
         expect(isBeforeNewRegime('2025-07-30')).toBe(true);
         expect(isBeforeNewRegime('2025-07-31')).toBe(false);
+    });
+
+    it('identifies the transitional window for weeks until age 8 only', () => {
+        expect(isExtraWeeksOnlyRegime('2024-08-01')).toBe(false);
+        expect(isExtraWeeksOnlyRegime('2024-08-02')).toBe(true);
+        expect(isExtraWeeksOnlyRegime('2025-07-30')).toBe(true);
+        expect(isExtraWeeksOnlyRegime('2025-07-31')).toBe(false);
+        expect(isUnsupportedDueDate('2024-08-01')).toBe(true);
+        expect(isUnsupportedDueDate('2024-08-02')).toBe(false);
+    });
+
+    it('returns only weeks until age 8 in the transitional window', () => {
+        expect(
+            getLeaveAllowance({
+                parentCount: 2,
+                babies: 2,
+                disability: true,
+                dueDate: '2025-03-01',
+            }),
+        ).toEqual({
+            mandatoryWeeks: 0,
+            flexibleWeeks: 0,
+            extraUntil8Weeks: 2,
+        });
+        expect(
+            getLeaveAllowance({
+                parentCount: 1,
+                babies: 1,
+                disability: false,
+                dueDate: '2024-08-02',
+            }).extraUntil8Weeks,
+        ).toBe(4);
+    });
+
+    it('bounds the due-date picker from the retroactive start to two years ahead', () => {
+        const { minDate, maxDate } = dueDatePickerBounds(new Date(2026, 8, 9));
+        expect(minDate.getFullYear()).toBe(2024);
+        expect(minDate.getMonth()).toBe(7);
+        expect(minDate.getDate()).toBe(2);
+        expect(maxDate.getFullYear()).toBe(2028);
     });
 });
 
