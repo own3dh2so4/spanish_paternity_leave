@@ -36,7 +36,9 @@ export default function StepParentCount({ value, onChange, dueDate }: Props) {
                         👥
                     </span>
                     <span className="toggle-label">{t.parentCountTwo}</span>
-                    <span className="toggle-hint">{t.parentCountTwoDesc(totalWeeks(2, dueDate))}</span>
+                    <span className="toggle-hint">
+                        {t.parentCountTwoDesc(totalWeeks(2, dueDate))}
+                    </span>
                 </button>
                 <button
                     type="button"
